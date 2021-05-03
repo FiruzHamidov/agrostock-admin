@@ -1,7 +1,7 @@
 'use strict'
 module.exports = {
   NODE_ENV: '"production"',
-  BASE_API: '"https://student.skfu.spichka.dev"',
-  FILE_URL: '"https://student.skfu.spichka.dev"',
+  BASE_API: '"https://api.agrostock.org"',
+  FILE_URL: '"https://api.agrostock.org"',
   SOCKET_PATH: '"/socket.io"',
 }

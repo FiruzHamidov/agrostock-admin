@@ -7,5 +7,4 @@ module.exports = merge(prodEnv, {
   BASE_API: '"http://localhost:3030"',
   FILE_URL: '"http://localhost:3030"',
   SOCKET_PATH: '"/socket.io"',
-  GOOGLE_MAP_API_KEY: '"AIzaSyB8s7Kx7bIccS6eM1ejTKykeK2uj4tZCxY"',
 })
