@@ -7,7 +7,7 @@ import { getToken } from '@/utils/auth' // 验权
 import apiClient from './utils/feathers-client'
 
 function hasPermission(to, from, next) {
-  const userType = store.state.user.authUser.role
+  const userType = store.state.user.authUser.type
 
   if (isAccessible(to, userType)) {
     next()

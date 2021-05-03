@@ -1,80 +1,5 @@
 <template>
-  <div class="dashboard-container">
-    <el-row class="top-menu">
-      <el-col :offset="1">
-        <span class="text-style">Информация по компании: </span>
-        <AsyncSelect
-          v-if="userType === 'admin'"
-          service="companies"
-          label="name"
-          clearable
-          placeholder="Компания"
-          :value="activeCompanyId"
-          :multiple="false"
-          @value-changed="handleChangeCompany"
-        />
-      </el-col>
-    </el-row>
-    <div class="stats">
-      <div class="line-charts">
-        <el-row>
-          <vue-element-loading
-            :active="isLoading"
-            spinner="bar-fade-scale"/>
-          <p class="center-text text-style">Динамика публикаций вакансий</p>
-          <line-chart
-            :chart-data="transformToLineChart()" />
-        </el-row>
-      </div>
-
-      <br />
-      <br />
-      <br />
-      <el-card class="box-card">
-        <div slot="header" class="clearfix">
-          <span>Статистика</span>
-        </div>
-        <el-row>
-        <el-col :span="6">
-          <router-link 
-            :to="{ name: 'Universities' }">
-            <el-button>
-              Количество подключенных университетов - {{ universityCounts }}
-            </el-button>
-          </router-link>
-        </el-col>
-        
-        <el-col :span="6">
-          <router-link 
-            :to="{ name: 'Universities' }">
-            <el-button>
-              Количество активных вакансий - {{ vacanciesCounts }}
-            </el-button>
-          </router-link>
-        </el-col>
-
-        <el-col :span="6">
-          <router-link 
-            :to="{ name: 'Universities' }">
-            <el-button>
-              Количество подключенных студентов - {{ studentsCounts }}
-            </el-button>
-          </router-link>
-        </el-col>
-        
-      </el-row>
-      </el-card>
-      
-      <!-- <div class="common">
-        <div class="pie">
-          <p class="center-text text-style">Разбиение по количеству заказов</p>
-          <p class="text-style sum-text">Количество заказов - {{ countSum(pieOrders.quantity.byPoints) }}</p>
-          <pie-chart
-            :chart-data="transformToPieChart(pieOrders.quantity.byPoints)" />
-        </div>
-      </div> -->
-    </div>
-  </div>
+  <div class="dashboard-container" />
 </template>
 
 <script>
@@ -186,7 +111,7 @@ export default {
       return { seriesArr, legendArr }
     },
 
-    transformToLineChart(field) {
+    transformToLineChart() {
       const companyName = this.getCompanyName()
       return {
         dates: Object.keys(this.vacancies),

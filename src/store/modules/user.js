@@ -64,17 +64,7 @@ const user = {
     token: state => state.token,
     email: state => (state.authUser ? state.authUser.email : undefined),
     roles: state => (state.authUser ? state.authUser.permissions : undefined),
-    userType: state => (state.authUser ? state.authUser.role : undefined),
-    roleType: state => {
-      if (state.authUser && state.authUser.role === 'company' && state.authUser.permissions) {
-        const permission = state.authUser.permissions.find(e => e.split(':*:')[0] === 'companies')
-        return permission
-      }
-      if (state.authUser && state.authUser.role === 'point' && state.authUser.permissions) {
-        return state.authUser.permissions.find(e => e.split(':*:')[0] === 'points')
-      }
-      return undefined
-    },
+    userType: state => (state.authUser ? state.authUser.type : undefined),
   },
 }
 

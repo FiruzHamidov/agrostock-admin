@@ -42,7 +42,7 @@
         label="Роль"
         width="200">
         <template slot-scope="scope">
-          {{ scope.row.role }}
+          {{ scope.row.type }}
         </template>
       </el-table-column>
       <el-table-column

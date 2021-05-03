@@ -16,7 +16,7 @@
       @update-image-url="handleImageDataUrl"
       @image-loaded="handleAvatarSuccess"
     />
-    <el-button v-if="form.logo || imageUrl !== ''" type="danger" @click="deleteLogo">
+    <el-button v-if="upload.path || imageUrl !== ''" type="danger" @click="deleteLogo">
       Удалить лого
     </el-button>
   </el-form-item>

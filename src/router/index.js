@@ -7,7 +7,6 @@ Vue.use(Router)
 
 /* Layout */
 import Layout from '../views/layout/Layout'
-import StudentLayout from '../views/layout/student/index'
 
 /**
 * hidden: true                   if `hidden:true` will not show in the sidebar(default is false)
@@ -61,6 +60,17 @@ export const constantRouterMap = [
       {
         path: 'add',
         name: 'addCategory',
+        hidden: true,
+        component: () => import('@/views/categories/CategoryForm'),
+        meta: {
+          title: 'Добавление категории',
+          icon: 'companies',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: 'add/:id',
+        name: 'addSubCategory',
         hidden: true,
         component: () => import('@/views/categories/CategoryForm'),
         meta: {

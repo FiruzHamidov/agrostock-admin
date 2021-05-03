@@ -16,6 +16,8 @@
         <el-button v-if="!isEdit" type="primary" @click="onAdd"> Cохранить </el-button>
         <el-button @click="onCancel">Отмена</el-button>
       </el-form-item>
+
+      <Table v-if="isEdit && form.id" :category-id="form.id" />
     </el-form>
   </div>
 </template>
@@ -24,12 +26,14 @@
 import validateForm from '@/mixins/validateForm'
 import confirmUpdate from '@/mixins/confirmUpdate'
 import Upload from '@/components/Upload'
+import Table from './table'
 
 export default {
   name: 'CategoryForm',
 
   components: {
     Upload,
+    Table,
   },
 
   mixins: [validateForm, confirmUpdate],
@@ -47,10 +51,28 @@ export default {
     }
   },
 
+  watch: {
+    $route: {
+      handler() {
+        if (this.$route.name !== 'addSubCategory' && this.$route.params.id) {
+          this.isEdit = true
+          this.fetchData()
+        } else {
+          this.isEdit = false
+          this.form = { name: '' }
+        }
+      },
+      deep: true,
+    },
+  },
+
   mounted() {
-    if (this.$route.params.id) {
+    if (this.$route.name !== 'addSubCategory' && this.$route.params.id) {
       this.isEdit = true
       this.fetchData()
+    } else {
+      this.isEdit = false
+      this.form = { name: '' }
     }
   },
 
@@ -106,9 +128,16 @@ export default {
 
       const categoryService = this.$apiClient.service('categories')
 
+      const data = { ...this.form }
+      if (this.$route.name === 'addSubCategory') {
+        data.categoryId = this.$route.params.id
+        data.type = 'sub'
+      } else {
+        data.type = 'main'
+      }
       try {
         await categoryService.create({
-          ...this.form,
+          ...data,
         })
       } catch (err) {
         this.$message({
