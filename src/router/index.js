@@ -102,7 +102,7 @@ export const constantRouterMap = [
     children: [
       {
         path: 'index',
-        name: 'Categories',
+        name: 'News',
         component: () => import('@/views/news/index'),
         meta: {
           title: 'Новости',

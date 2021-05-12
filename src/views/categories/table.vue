@@ -1,5 +1,9 @@
 <template>
-  <div class="app-container">
+  <div class="category-container">
+    <div class="category-container__title">
+      <h3>Категория - {{ category.name }}</h3>
+    </div>
+
     <div
       class="top-menu el-col el-col-24 el-col-xs-24 el-col-sm-24 el-col-md-24 tp-text--right mb-4"
     >
@@ -8,18 +12,20 @@
         <el-button @click="onFilterClick"> Применить </el-button>
       </div>
       <div class="add-button">
-        <router-link :to="{ name: 'addSubCategory', params: { id: categoryId } }">
-          <el-button type="success" icon="el-icon-plus" circle />
-        </router-link>
+        <el-button v-if="categoryId" type="success" icon="el-icon-plus" circle @click="onAddClick" />
+        <!-- <router-link :to="{ name: 'addSubCategory', params: { id: categoryId } }">
+        </router-link> -->
       </div>
     </div>
     <el-table
       v-loading="isLoading"
       :data="categories"
+      size="small"
       element-loading-text="Loading"
       border
       fit
       highlight-current-row
+      @row-click="onRowClick"
     >
       <el-table-column align="center" label="ID" width="95">
         <template slot-scope="scope">
@@ -34,50 +40,56 @@
       <el-table-column align="center" fixed="right" label="Действия" width="200">
         <template slot-scope="scope">
           <div class="el-button-group">
-            <router-link
+            <!-- <router-link
               :to="{ name: 'editCategory', params: { id: scope.row.id } }"
               tag="button"
               class="el-button el-button--default el-button--small"
               ><i class="el-icon-edit"
-            /></router-link>
-            <el-button size="small" @click="handleDelete(scope.row.id)"
+            /></router-link> -->
+            <el-button size="small" @click="onEditClick(scope.row.id)">
+              <i class="el-icon-edit"
+            />
+            </el-button>
+            <el-button size="small" @click="onDeleteClick(scope.row.id)"
               ><i class="el-icon-delete"
             /></el-button>
           </div>
         </template>
       </el-table-column>
     </el-table>
-    <el-pagination
-      :current-page.sync="page"
-      :page-size="limit"
-      :total="total"
-      :page-sizes="[10, 20, 50]"
-      background
-      layout="sizes, prev, pager, next, total"
-      @size-change="handleSizeChange"
-      @current-change="fetchData"
-    />
+
+    <el-dialog :title="`${formCategoryId ? 'Добавление подкатегории для ' : 'Редактирование подкатегории для '} ${category.name}`" :visible.sync="isShowForm">
+      <Form :id="formCategoryId" :category-id="categoryId" :languages="languages" @on-edit="onFormUpdate" @on-add="onFormUpdate" @on-cancel="onFormUpdate" />
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import confirmUpdate from '@/mixins/confirmUpdate'
+import Form from './form'
 
 export default {
   name: 'Categories',
 
-  mixins: [confirmUpdate],
+  components: { Form },
 
   props: {
     categoryId: {
       type: Number,
-      required: true,
-    }
+      default: 0,
+      required: false,
+    },
+    languages: {
+      type: Array,
+      default: () => [],
+    },
   },
 
   data() {
     return {
+      category: {},
       categories: [],
+      formCategoryId: null,
+      isShowForm: false,
       filters: {},
       isLoading: true,
       total: 1,
@@ -89,7 +101,7 @@ export default {
   watch: {
     categoryId() {
       this.fetchData()
-    }
+    },
   },
 
   mounted() {
@@ -100,12 +112,21 @@ export default {
     async fetchData() {
       const categoriesService = this.$apiClient.service('categories')
 
+      if (this.categoryId) {
+        this.category = await this.$apiClient.service('categories').get(this.categoryId)
+      }
+
       this.isLoading = true
       const query = {
-        $limit: this.limit,
-        $skip: this.page - 1 ? (this.page - 1) * this.limit : 0,
-        categoryId: this.categoryId
+        $limit: -1,
+        // $skip: this.page - 1 ? (this.page - 1) * this.limit : 0,
+        categoryId: this.categoryId,
+        type: 'sub',
+        $sort: {
+          id: -1,
+        },
       }
+      console.log(query)
 
       Object.keys(this.filters).forEach(key => {
         if (this.filters[key]) {
@@ -116,28 +137,35 @@ export default {
         query,
       })
 
-      const { data, total } = response
+      // const { data, total } = response
 
-      if (data.length === 0 && this.page > 1) {
-        this.page -= 1
-        return await this.fetchData()
-      }
+      // if (data.length === 0 && this.page > 1) {
+      //   this.page -= 1
+      //   return await this.fetchData()
+      // }
 
-      this.categories = data
-      this.total = total
+      this.categories = response
+      this.total = response.length
 
       this.isLoading = false
       return true
     },
 
-    handleSizeChange(pageSize) {
-      this.limit = pageSize
+    onFilterClick() {
       this.fetchData()
     },
 
-    updateActive() {},
+    onAddClick() {
+      this.formCategoryId = null
+      this.isShowForm = true
+    },
 
-    async handleDelete(id) {
+    onEditClick(id) {
+      this.formCategoryId = id
+      this.isShowForm = true
+    },
+
+    async onDeleteClick(id) {
       try {
         await this.confirmUpdate('Точно удалить категорию?', 'Категория не удалена')
       } catch (err) {
@@ -153,10 +181,21 @@ export default {
       return await this.fetchData()
     },
 
-    onFilterClick() {
-      this.page = 1
+    onRowClick(row) {
+      this.$emit('on-select', row.id)
+    },
+
+    onFormUpdate() {
+      this.isShowForm = false
       this.fetchData()
     },
   },
 }
 </script>
+
+<style>
+.category-container {
+  width: 30%;
+  margin-right: 3%;
+}
+</style>

@@ -10,22 +10,12 @@
         </el-col>
       </el-row>
 
-      <Upload :id="form.photoId" />
-
       <el-form-item>
         <el-button v-if="isEdit" type="primary" @click="onEdit"> Изменить </el-button>
         <el-button v-if="!isEdit" type="primary" @click="onAdd"> Cохранить </el-button>
         <el-button @click="onCancel">Отмена</el-button>
       </el-form-item>
     </el-form>
-
-    <template v-if="isEdit && form.id">
-      <div class="categories-table">
-        <Table :category-id="form.id" @on-select="id => firstCategoryId = id" :languages="languages" />
-        <Table v-if="firstCategoryId" :category-id="firstCategoryId" @on-select="id => secondCategoryId = id" :languages="languages" />
-        <Table v-if="secondCategoryId" :category-id="secondCategoryId" @on-select="id => thirdCategoryId = id" :languages="languages" />
-      </div>
-    </template>
   </div>
 </template>
 
@@ -45,46 +35,47 @@ export default {
 
   mixins: [validateForm, confirmUpdate],
 
+  props: {
+    id: {
+      type: Number,
+      default: 0,
+    },
+    categoryId: {
+      type: Number,
+      required: true,
+    },
+    languages: {
+      type: Array,
+      default: () => [],
+    },
+  },
+
   data() {
     return {
       form: {
         name: '',
       },
-      firstCategoryId: null,
-      secondCategoryId: null,
-      thirdCategoryId: null,
-
-      categoryId: null,
-      formCategoryId: null,
-      isShowForm: false,
       show: false,
       isEdit: false,
       rules: {
-        // name: [{ required: true, message: 'Введите название категории', trigger: 'blur' }],
+        name: [{ required: true, message: 'Введите название категории', trigger: 'blur' }],
       },
-
-      languages: [],
     }
   },
 
   watch: {
-    $route: {
-      handler() {
-        this.init()
-      },
-      deep: true,
+    id() {
+      this.init()
     },
   },
 
   mounted() {
-    this.fetchLanguages()
-
     this.init()
   },
 
   methods: {
     async init() {
-      if (this.$route.params.id) {
+      if (this.id) {
         this.isEdit = true
         await this.fetchData()
       } else {
@@ -97,17 +88,13 @@ export default {
       }
     },
 
-    async fetchLanguages() {
-      this.languages = await this.$apiClient.service('languages').find({
-        query: {
-          $limit: -1,
-        },
-      })
-    },
-
     async fetchData() {
       const categoryService = this.$apiClient.service('categories')
-      const res = await categoryService.get(this.$route.params.id, { query: { $getAllLang: true } })
+      const res = await categoryService.get(this.id, { query: { $getAllLang: true } })
+
+      for (const lang of this.languages) {
+        res[lang.code] = res[lang.code] || {}
+      }
 
       this.form = res
     },
@@ -144,7 +131,7 @@ export default {
         type: 'success',
       })
 
-      this.$router.push({ name: 'Categories' })
+      this.$emit('on-edit')
     },
 
     async onAdd() {
@@ -156,13 +143,7 @@ export default {
 
       const categoryService = this.$apiClient.service('categories')
 
-      const data = { ...this.form }
-      if (this.$route.name === 'addSubCategory') {
-        data.categoryId = this.$route.params.id
-        data.type = 'sub'
-      } else {
-        data.type = 'main'
-      }
+      const data = { ...this.form, categoryId: this.categoryId, type: 'sub' }
       try {
         await categoryService.create({
           ...data,
@@ -180,7 +161,7 @@ export default {
         type: 'success',
       })
 
-      this.$router.push({ name: 'Categories' })
+      this.$emit('on-add')
     },
 
     async onCancel() {
@@ -198,19 +179,7 @@ export default {
         type: 'warning',
       })
 
-      this.$router.push({ name: 'Categories' })
-    },
-
-    onAddCategory(categoryId) {
-      this.categoryId = categoryId
-      this.formCategoryId = null
-      this.isShowForm = true
-    },
-
-    onEditCategory(formCategoryId, categoryId) {
-      this.categoryId = categoryId
-      this.formCategoryId = formCategoryId
-      this.isShowForm = true
+      this.$emit('on-cancel')
     },
   },
 }
@@ -219,9 +188,5 @@ export default {
 <style>
 .line {
   text-align: center;
-}
-.categories-table {
-  display: flex;
-  flex-direction: row;
 }
 </style>

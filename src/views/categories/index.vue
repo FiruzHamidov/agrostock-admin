@@ -91,6 +91,7 @@ export default {
       const query = {
         $limit: this.limit,
         $skip: this.page - 1 ? (this.page - 1) * this.limit : 0,
+        type: 'main',
       }
 
       Object.keys(this.filters).forEach(key => {

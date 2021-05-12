@@ -7,12 +7,30 @@
             <el-input v-model="form.name" />
           </el-form-item>
         </el-col>
+
+        <el-col :span="8">
+          <el-form-item prop="languageId" label="Язык">
+            <AsyncSelect
+              :value="form.languageId"
+              service="languages"
+              label="name"
+              placeholder="Выберите язык"
+              @value-changed="v => form.languageId = v"
+            />
+          </el-form-item>
+        </el-col>
       </el-row>
 
-      <Upload :id="form.photoId" />
+      <Upload
+        :id="form.photoId"
+        @on-change="onPhotoChange"
+      />
 
       <el-form-item label="Текст">
-        <Markdown :input="form.text" @on-update="val => (form.text = val)" />
+        <Markdown
+          :input="form.text"
+          @on-update="val => (form.text = val)"
+        />
       </el-form-item>
 
       <el-form-item>
@@ -29,6 +47,7 @@ import validateForm from '@/mixins/validateForm'
 import confirmUpdate from '@/mixins/confirmUpdate'
 import Upload from '@/components/Upload'
 import Markdown from '@/components/Markdown'
+import AsyncSelect from '@/components/AsyncSelect'
 
 export default {
   name: 'NewsForm',
@@ -36,6 +55,7 @@ export default {
   components: {
     Upload,
     Markdown,
+    AsyncSelect,
   },
 
   mixins: [validateForm, confirmUpdate],
@@ -44,11 +64,14 @@ export default {
     return {
       form: {
         name: '',
+        languageId: null,
+        photoId: null,
       },
       isEdit: false,
       rules: {
         name: [{ required: true, message: 'Введите название новости', trigger: 'blur' }],
         description: [{ required: true, message: 'Введите текст новости', trigger: 'blur' }],
+        languageId: [{ required: true, message: 'Выберите язык', trigger: 'blur' }],
       },
     }
   },
@@ -104,6 +127,7 @@ export default {
     },
 
     async onAdd() {
+      console.log(this.form)
       try {
         await this.validateForm('ruleForm')
       } catch (err) {
@@ -145,6 +169,11 @@ export default {
       })
 
       this.$router.push({ name: 'News' })
+    },
+
+    onPhotoChange(v) {
+      console.log(v)
+      this.form.photoId = v
     },
   },
 }

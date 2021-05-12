@@ -65,7 +65,7 @@ export default {
         return false
       }
 
-      this.upload = await this.$apiClient.service('uploads').get(id)
+      this.upload = await this.$apiClient.service('uploads').get(this.id)
       this.imageUrl = this.upload.path
     },
 

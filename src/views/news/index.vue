@@ -31,6 +31,11 @@
           {{ scope.row.name }}
         </template>
       </el-table-column>
+      <el-table-column align="center" label="Язык">
+        <template slot-scope="scope">
+          {{ scope.row.language ? `${scope.row.language.name} - ${scope.row.language.code}` : ' - ' }}
+        </template>
+      </el-table-column>
       <el-table-column align="center" fixed="right" label="Действия" width="200">
         <template slot-scope="scope">
           <div class="el-button-group">
