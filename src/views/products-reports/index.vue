@@ -63,7 +63,7 @@
       <el-table-column align="center" fixed="right" label="Действия" width="200">
         <template slot-scope="scope">
           <div class="el-button-group">
-            <el-button v-if="scope.row.tender && scope.row.tender.status !== 'banned'" size="small" @click="productBan(scope.row.productId)">
+            <el-button v-if="scope.row.product && scope.row.product.status !== 'banned'" size="small" @click="productBan(scope.row.productId)">
               Заблокировать
             </el-button>
             <el-button v-else size="small">
