@@ -13,6 +13,7 @@ module.exports = {
     quotes: ['error', 'single'],
     semi: ['error', 'never'],
     'switch-colon-spacing': ['error', { after: true, before: false }],
+    'vue/max-attributes-per-line': 'off',
   },
   parserOptions: {
     parser: 'babel-eslint',

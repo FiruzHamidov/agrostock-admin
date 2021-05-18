@@ -69,17 +69,6 @@ export const constantRouterMap = [
         },
       },
       {
-        path: 'add/:id',
-        name: 'addSubCategory',
-        hidden: true,
-        component: () => import('@/views/categories/CategoryForm'),
-        meta: {
-          title: 'Добавление категории',
-          icon: 'companies',
-          roles: ['admin'],
-        },
-      },
-      {
         path: 'edit/:id',
         name: 'editCategory',
         hidden: true,
@@ -128,6 +117,77 @@ export const constantRouterMap = [
         component: () => import('@/views/news/NewsForm'),
         meta: {
           title: 'Изменение новости',
+          icon: 'companies',
+          roles: ['admin'],
+        },
+      },
+    ],
+    meta: {
+      availableRoles: ['admin'],
+    },
+  },
+
+  {
+    path: '/tenders',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'Tenders',
+        component: () => import('@/views/tenders/index'),
+        meta: {
+          title: 'Торги',
+          icon: 'companies',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: 'edit/:id',
+        name: 'editTender',
+        hidden: true,
+        component: () => import('@/views/tenders/TendersForm'),
+        meta: {
+          title: 'Изменение торгов',
+          icon: 'companies',
+          roles: ['admin'],
+        },
+      },
+    ],
+    meta: {
+      availableRoles: ['admin'],
+    },
+  },
+
+  {
+    path: '/tenders-reports',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'TendersReports',
+        component: () => import('@/views/tenders-reports/index'),
+        meta: {
+          title: 'Жалобы на торги',
+          icon: 'companies',
+          roles: ['admin'],
+        },
+      },
+    ],
+    meta: {
+      availableRoles: ['admin'],
+    },
+  },
+
+  {
+    path: '/products-reports',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'ProductsReports',
+        component: () => import('@/views/products-reports/index'),
+        meta: {
+          title: 'Жалобы на товар',
           icon: 'companies',
           roles: ['admin'],
         },

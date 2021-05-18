@@ -5,7 +5,7 @@
     :label="label"
     :reduce="reduce"
     :options="addresses"
-    :fetchData="fetchAddresses"
+    :fetch-data="fetchAddresses"
     :taggable="taggable"
     :clearable="false"
     :infinite-loading="false"
@@ -47,6 +47,10 @@ export default {
       type: Function,
       default: val => val.id,
     },
+    additionalQuery: {
+      type: Object,
+      default: () => ({}),
+    },
   },
 
   data() {
@@ -71,9 +75,10 @@ export default {
     async fetchAddresses() {
       const query = {
         $limit: -1,
+        ...this.additionalQuery,
       }
       if (this.addressSearch) {
-        query.$search = this.addressSearch
+        query.search = this.addressSearch
       }
       const response = await this.$apiClient.service(this.service).find({
         query,
@@ -92,6 +97,7 @@ export default {
     },
 
     addressChanged(address) {
+      console.log(address)
       this.address = address
       this.$emit('value-changed', this.address)
     },
@@ -100,4 +106,7 @@ export default {
 </script>
 
 <style>
+.vs--searchable .vs__dropdown-toggle {
+  height: 40px;
+}
 </style>

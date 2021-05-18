@@ -21,9 +21,9 @@
 
     <template v-if="isEdit && form.id">
       <div class="categories-table">
-        <Table :category-id="form.id" @on-select="id => firstCategoryId = id" :languages="languages" />
-        <Table v-if="firstCategoryId" :category-id="firstCategoryId" @on-select="id => secondCategoryId = id" :languages="languages" />
-        <Table v-if="secondCategoryId" :category-id="secondCategoryId" @on-select="id => thirdCategoryId = id" :languages="languages" />
+        <Table :category-id="form.id" :languages="languages" @on-select="id => firstCategoryId = id" />
+        <Table v-if="firstCategoryId" :category-id="firstCategoryId" :languages="languages" @on-select="id => secondCategoryId = id" />
+        <Table v-if="secondCategoryId" :category-id="secondCategoryId" :languages="languages" @on-select="id => thirdCategoryId = id" />
       </div>
     </template>
   </div>

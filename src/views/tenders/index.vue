@@ -7,15 +7,11 @@
         <el-input v-model="filters.search" placeholder="Название" />
         <el-button @click="onFilterClick"> Применить </el-button>
       </div>
-      <div class="add-button">
-        <router-link :to="{ name: 'addCategory' }">
-          <el-button type="success" icon="el-icon-plus" circle />
-        </router-link>
-      </div>
+      <div class="add-button" />
     </div>
     <el-table
       v-loading="isLoading"
-      :data="categories"
+      :data="tenders"
       element-loading-text="Loading"
       border
       fit
@@ -31,11 +27,31 @@
           {{ scope.row.name }}
         </template>
       </el-table-column>
+      <el-table-column align="center" label="Тип">
+        <template slot-scope="scope">
+          {{ scope.row.type === 'sell' ? 'Продажа' : 'Покупка' }}
+        </template>
+      </el-table-column>
+      <el-table-column align="center" label="Начальная цена">
+        <template slot-scope="scope">
+          {{ scope.row.startPrice }} {{ currencySymbols[scope.row.currency] }}
+        </template>
+      </el-table-column>
+      <el-table-column align="center" label="Дата" width="300">
+        <template slot-scope="scope">
+          {{ scope.row.dateStart | tenderTimeFormat }} - {{ scope.row.dateEnd | tenderTimeFormat }}
+        </template>
+      </el-table-column>
+      <el-table-column align="center" label="Статус">
+        <template slot-scope="scope">
+          {{ statuses[scope.row.status] }}
+        </template>
+      </el-table-column>
       <el-table-column align="center" fixed="right" label="Действия" width="200">
         <template slot-scope="scope">
           <div class="el-button-group">
             <router-link
-              :to="{ name: 'editCategory', params: { id: scope.row.id } }"
+              :to="{ name: 'editTender', params: { id: scope.row.id } }"
               tag="button"
               class="el-button el-button--default el-button--small"
             >
@@ -63,20 +79,42 @@
 
 <script>
 import confirmUpdate from '@/mixins/confirmUpdate'
+import moment from 'moment'
+
+import { currencySymbols } from '@/utils/variables'
 
 export default {
-  name: 'Categories',
+  name: 'Tenders',
+
+  filters: {
+    tenderTimeFormat: val => {
+      if (!moment(val).isValid()) {
+        return val
+      }
+      return moment(val).format('YYYY-MM-DD HH:mm')
+    },
+  },
 
   mixins: [confirmUpdate],
 
   data() {
     return {
-      categories: [],
+      tenders: [],
       filters: {},
       isLoading: true,
       total: 1,
       limit: 10,
       page: 1,
+      currencySymbols,
+      statuses: {
+        wait: 'В ожидание',
+        active: 'Активен',
+        cancelled: 'Отменен',
+        suspended: 'Приостановлен',
+        doneWithWinner: 'Завершен (есть победитель)',
+        doneWithoutWinner: 'Завершен (нет победителя)',
+        banned: 'Заблокирован',
+      },
     }
   },
 
@@ -86,7 +124,7 @@ export default {
 
   methods: {
     async fetchData() {
-      const categoriesService = this.$apiClient.service('categories')
+      const tendersService = this.$apiClient.service('tenders')
 
       this.isLoading = true
       const query = {
@@ -95,7 +133,6 @@ export default {
         $sort: {
           createdAt: -1,
         },
-        type: 'main',
       }
 
       Object.keys(this.filters).forEach(key => {
@@ -103,7 +140,7 @@ export default {
           query[key] = this.filters[key]
         }
       })
-      const response = await categoriesService.find({
+      const response = await tendersService.find({
         query,
       })
 
@@ -114,7 +151,7 @@ export default {
         return await this.fetchData()
       }
 
-      this.categories = data
+      this.tenders = data
       this.total = total
 
       this.isLoading = false
@@ -135,7 +172,7 @@ export default {
         return false
       }
 
-      await this.$apiClient.service('categories').remove(id)
+      await this.$apiClient.service('tenders').remove(id)
       this.$message({
         message: 'Категория удалена!',
         type: 'success',
