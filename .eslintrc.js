@@ -14,6 +14,7 @@ module.exports = {
     semi: ['error', 'never'],
     'switch-colon-spacing': ['error', { after: true, before: false }],
     'vue/max-attributes-per-line': 'off',
+    'vue/html-self-closing': 'off',
   },
   parserOptions: {
     parser: 'babel-eslint',

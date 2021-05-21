@@ -4,12 +4,12 @@
       <div class="chat__info">
         <div class="chat__client">
           <p
-            v-for="client in chat.chatClients || []"
-            :key="client.id"
+            v-for="company in chat.chatCompanies || []"
+            :key="company.id"
             class="chat__client_name"
-            @click="openClient(client.id)"
+            @click="openCompany(company.id)"
           >
-            {{ client.instUsername || '-' }}
+            {{ company.organizationName }} - {{ company.contactPhone }}
           </p>
         </div>
       </div>
@@ -38,23 +38,47 @@
           <div
             :key="index"
             :class="{
-              message_client: isFirstClient(message.clientId),
-              message_operator: !isFirstClient(message.clientId),
+              message_client: isFirstClient(message.companyId),
+              message_operator: !isFirstClient(message.companyId),
               message_system: message.type === 'system',
             }"
             class="message"
           >
+            <div v-if="message.file" class="message__file">
+              <img :src="message.file.path" alt="file" />
+              <p class="message__file-name">{{ message.file.originalname }}</p>
+            </div>
             <p class="message__text">{{ message.text }}</p>
             <p class="message__date">{{ message.createdAt | getHours }}</p>
-
-            <img
-              :src="require('@/assets/close.svg')"
-              alt="delete"
-              class="message__delete"
-              @click="() => openDeletePopup(message)"
-            >
           </div>
         </template>
+      </div>
+    </div>
+
+    <div class="chat__input">
+      <div class="chat__input-file">
+        <input ref="uploader" style="display: none;" type="file" @change="onFileChange" />
+
+        <div v-if="!sendMessage.fileId" class="chat__input-file-attach" @click="onAttachClick">
+          <img :src="require('@/assets/paperclip.svg')" alt="attach" />
+        </div>
+
+        <div v-else class="chat__input-file-send" @click="onAttachClick">
+          <img :src="sendMessage.file ? sendMessage.file.path : ''" alt="file" />
+          <p>{{ sendMessage.file ? sendMessage.file.originalname : '-' }}</p>
+        </div>
+      </div>
+
+      <div class="chat__input-input">
+        <el-input
+          v-model="sendMessage.text"
+          placeholder="Сообщение..."
+          @keyup.enter="onSendMessage"
+        />
+      </div>
+
+      <div class="chat__input-send" @click="onSendMessage">
+        <img :src="require('@/assets/send.svg')" alt="send" />
       </div>
     </div>
   </div>
@@ -62,6 +86,8 @@
 
 <script>
 import moment from 'moment'
+import axios from 'axios'
+import { mapGetters } from 'vuex'
 import InfiniteLoading from 'vue-infinite-loading'
 import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/vue-loading.css'
@@ -106,7 +132,18 @@ export default {
         limit: 10,
       },
       messages: [],
+      sendMessage: {
+        text: '',
+        fileId: null,
+        file: {},
+      },
     }
+  },
+
+  computed: {
+    ...mapGetters({
+      token: 'user/token',
+    }),
   },
 
   watch: {
@@ -227,47 +264,65 @@ export default {
       }, 5)
     },
 
-    isFirstClient(clientId) {
+    isFirstClient(companyId) {
       return (
         this.chat &&
-        this.chat.chatClients &&
-        this.chat.chatClients[0] &&
-        String(this.chat.chatClients[0].id) === String(clientId)
+        this.chat.chatCompanies &&
+        this.chat.chatCompanies[0] &&
+        String(this.chat.chatCompanies[0].id) === String(companyId)
       )
     },
 
-    openClient(clientId) {
-      this.$router.push({ name: 'editClient', params: { id: clientId } })
+    openCompany(companyId) {
+      this.$router.push({ name: 'editCompany', params: { id: companyId } })
     },
 
-    async openDeletePopup(message) {
+    onAttachClick() {
+      if (this.$refs.uploader) {
+        this.$refs.uploader.click()
+      }
+    },
+
+    async onFileAttach(e) {
+      if (!e || !e.target || !e.target.files || !e.target.files[0]) {
+        return false
+      }
+
+      const file = e.target.files[0]
+
       try {
-        const response = await this.$confirm(
-          'Вы уверены, что хотите удалить это сообщение?',
-          'Внимание',
-          {
-            confirmButtonText: 'Да',
-            cancelButtonText: 'Отменить',
-            type: 'error',
-          }
-        )
-        if (response === 'confirm') {
-          try {
-            await this.$apiClient.service('chats-messages').remove(message.id)
-            this.messages = this.messages.filter(item => item.id !== message.id)
-            this.messagesPagination = {
-              ...this.messagesPagination,
-              total: this.messagesPagination.total - 1,
-            }
-          } catch (e) {
-            this.$message({
-              message: e.message,
-              type: 'error',
-            })
-          }
-        }
+        const formData = new FormData()
+        formData.append('file', file)
+
+        const { data } = await axios({
+          method: 'POST',
+          url: `${process.env.FILE_URL}/uploads`,
+          data: formData,
+          headers: { Authorization: `Bearer ${this.token}` },
+        })
+
+        this.sendMessage.fileId = data[0].id
+        this.sendMessage.file = data[0]
       } catch (e) {
-        // do nothing
+        // message.error('Error while uploading file');
+      }
+    },
+
+    async onSendMessage() {
+      if (!this.sendMessage.text) {
+        return false
+      }
+
+      await this.$apiClient.service('chats-messages').create({
+        chatId: this.chat.id,
+        text: this.sendMessage.text,
+        fileId: this.sendMessage.fileId,
+      })
+
+      this.sendMessage = {
+        text: '',
+        fileId: null,
+        file: {},
       }
     },
   },
@@ -483,6 +538,26 @@ export default {
   margin-top: 15px;
   border-radius: 4px;
 
+  &__file {
+    width: 100%;
+    margin-bottom: 5px;
+    padding-bottom: 5px;
+    border-bottom: 1px dashed black;
+
+    img {
+      object-fit: contain;
+      width: 100%;
+      max-height: 150px;
+    }
+    &-name {
+      width: 70%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin: 0 15% 5px 15%;
+      font-size: 14px;
+    }
+  }
   &__text {
     font-size: 16px;
     line-height: 19px;
