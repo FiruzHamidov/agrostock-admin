@@ -18,7 +18,7 @@
       </el-table-column>
       <el-table-column align="center" label="Объем">
         <template slot-scope="scope">
-          {{ scope.row.batchSize }} {{ scope.row.batchSizeUnit }}
+          {{ scope.row.batchSize }} {{ getBatchUnitSizesLabel(scope.row.batchSizeUnit) }}
         </template>
       </el-table-column>
       <el-table-column align="center" label="Тип сделки" width="300">
@@ -67,7 +67,7 @@
 import confirmUpdate from '@/mixins/confirmUpdate'
 import moment from 'moment'
 
-import { currencySymbols } from '@/utils/variables'
+import { currencySymbols, batchUnitSizes } from '@/utils/variables'
 
 export default {
   name: 'Deals',
@@ -141,6 +141,10 @@ export default {
     handleSizeChange(pageSize) {
       this.limit = pageSize
       this.fetchData()
+    },
+
+    getBatchUnitSizesLabel(value) {
+      return batchUnitSizes.find(item => item.value === value).label
     },
   },
 }
