@@ -1,8 +1,8 @@
 <template>
   <div class="editor">
-      <textarea :value="input" @input="update"></textarea>
-      <div v-html="compiledMarkdown"></div>
-    </div>
+    <textarea :value="input" @input="update"/>
+    <div v-html="compiledMarkdown"/>
+  </div>
 </template>
 
 <script>

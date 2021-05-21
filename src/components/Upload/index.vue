@@ -6,7 +6,7 @@
       style="cursor: pointer"
       class="avatar"
       @click="toggleShow"
-    />
+    >
     <div v-else class="avatar-uploader" @click="toggleShow">
       <i class="el-icon-plus avatar-uploader-icon" />
     </div>

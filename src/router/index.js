@@ -159,6 +159,37 @@ export const constantRouterMap = [
   },
 
   {
+    path: '/deals',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'Deals',
+        component: () => import('@/views/deals/index'),
+        meta: {
+          title: 'Сделки',
+          icon: 'companies',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: 'edit/:id',
+        name: 'editDeals',
+        hidden: true,
+        component: () => import('@/views/deals/DealForm'),
+        meta: {
+          title: 'Сделка',
+          icon: 'companies',
+          roles: ['admin'],
+        },
+      },
+    ],
+    meta: {
+      availableRoles: ['admin'],
+    },
+  },
+
+  {
     path: '/tenders-reports',
     component: Layout,
     children: [

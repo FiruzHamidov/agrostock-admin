@@ -47,13 +47,13 @@ export default {
      */
     typeAheadSelect() {
       if( this.filteredOptions[ this.typeAheadPointer ] ) {
-        this.select( this.filteredOptions[ this.typeAheadPointer ] );
+        this.select( this.filteredOptions[ this.typeAheadPointer ] )
       } else if (this.taggable && this.search.length){
         this.select(this.search)
       }
 
       if( this.clearSearchOnSelect ) {
-        this.search = "";
+        this.search = ''
       }
     },
   }

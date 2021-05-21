@@ -48,10 +48,10 @@
             /></router-link> -->
             <el-button size="small" @click="onEditClick(scope.row.id)">
               <i class="el-icon-edit"
-            />
+              />
             </el-button>
             <el-button size="small" @click="onDeleteClick(scope.row.id)"
-              ><i class="el-icon-delete"
+            ><i class="el-icon-delete"
             /></el-button>
           </div>
         </template>

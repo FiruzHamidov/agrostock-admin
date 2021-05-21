@@ -1,26 +1,26 @@
 <template>
-  <div :dir="dir" class="v-select" :class="stateClasses">
-    <div ref="toggle" @mousedown.prevent="toggleDropdown" class="vs__dropdown-toggle">
+  <div :dir="dir" :class="stateClasses" class="v-select">
+    <div ref="toggle" class="vs__dropdown-toggle" @mousedown.prevent="toggleDropdown">
 
-      <div class="vs__selected-options" ref="selectedOptions">
+      <div ref="selectedOptions" class="vs__selected-options">
         <slot v-for="option in selectedValue"
-              name="selected-option-container"
               :option="normalizeOptionForSlot(option)"
               :deselect="deselect"
               :multiple="multiple"
-              :disabled="disabled">
-          <span class="vs__selected" v-bind:key="option.index">
-            <slot name="selected-option" v-bind="normalizeOptionForSlot(option)">
+              :disabled="disabled"
+              name="selected-option-container">
+          <span :key="option.index" class="vs__selected">
+            <slot v-bind="normalizeOptionForSlot(option)" name="selected-option">
               {{ getOptionLabel(option) }}
             </slot>
-            <button v-if="multiple" :disabled="disabled" @click="deselect(option)" type="button" class="vs__deselect" aria-label="Deselect option">
+            <button v-if="multiple" :disabled="disabled" type="button" class="vs__deselect" aria-label="Deselect option" @click="deselect(option)">
               <component :is="childComponents.Deselect" />
             </button>
           </span>
         </slot>
 
-        <slot name="search" v-bind="scope.search">
-          <input class="vs__search" v-bind="scope.search.attributes" v-on="scope.search.events">
+        <slot v-bind="scope.search" name="search">
+          <input v-bind="scope.search.attributes" class="vs__search" v-on="scope.search.events">
         </slot>
       </div>
 
@@ -28,36 +28,36 @@
         <button
           v-show="showClearButton"
           :disabled="disabled"
-          @click="clearSelection"
           type="button"
           class="vs__clear"
           title="Clear selection"
+          @click="clearSelection"
         >
           <component :is="childComponents.Deselect" />
         </button>
 
-        <slot name="open-indicator" v-bind="scope.openIndicator">
-          <component :is="childComponents.OpenIndicator" v-if="!noDrop" v-bind="scope.openIndicator.attributes"/>
+        <slot v-bind="scope.openIndicator" name="open-indicator">
+          <component v-if="!noDrop" :is="childComponents.OpenIndicator" v-bind="scope.openIndicator.attributes"/>
         </slot>
 
-        <slot name="spinner" v-bind="scope.spinner">
-          <div class="vs__spinner" v-show="mutableLoading">Loading...</div>
+        <slot v-bind="scope.spinner" name="spinner">
+          <div v-show="mutableLoading" class="vs__spinner">Loading...</div>
         </slot>
       </div>
     </div>
 
     <transition :name="transition">
-      <ul ref="dropdownMenu" v-if="dropdownOpen" class="vs__dropdown-menu" role="listbox" @mousedown="onMousedown" @mouseup="onMouseUp">
+      <ul v-if="dropdownOpen" ref="dropdownMenu" class="vs__dropdown-menu" role="listbox" @mousedown="onMousedown" @mouseup="onMouseUp">
         <li
-          role="option"
           v-for="(option, index) in filteredOptions"
           :key="index"
-          class="vs__dropdown-option"
           :class="{ 'vs__dropdown-option--selected': isOptionSelected(option), 'vs__dropdown-option--highlight': index === typeAheadPointer }"
+          role="option"
+          class="vs__dropdown-option"
           @mouseover="typeAheadPointer = index"
           @mousedown.prevent.stop="select(option)"
         >
-          <slot name="option" v-bind="normalizeOptionForSlot(option)">
+          <slot v-bind="normalizeOptionForSlot(option)" name="option">
             {{ getOptionLabel(option) }}
           </slot>
         </li>

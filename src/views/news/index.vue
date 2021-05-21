@@ -33,7 +33,9 @@
       </el-table-column>
       <el-table-column align="center" label="Язык">
         <template slot-scope="scope">
-          {{ scope.row.language ? `${scope.row.language.name} - ${scope.row.language.code}` : ' - ' }}
+          {{
+            scope.row.language ? `${scope.row.language.name} - ${scope.row.language.code}` : ' - '
+          }}
         </template>
       </el-table-column>
       <el-table-column align="center" fixed="right" label="Действия" width="200">
@@ -66,6 +68,7 @@
 </template>
 
 <script>
+// eslint-disable-next-line no-unused-vars
 import { mapActions } from 'vuex'
 
 import confirmUpdate from '@/mixins/confirmUpdate'
