@@ -1,10 +1,23 @@
 <template>
   <div class="app-container deal-form">
     <el-form ref="ruleForm" :rules="rules" :model="form" label-width="160px" label-position="top">
+      <h3 class="timer">
+        Покупатель резервирует средства |
+        <vue-countdown-timer
+          :start-time="Date.now()"
+          :end-time="new Date(form.createdAt).getTime() + 1000 * 60 * 60 * 24 * 3"
+          :interval="1000"
+          :end-text="'Покупатель не зарезирвировал средства'"
+          :day-txt="''"
+          :hour-txt="'часов'"
+          :minutes-txt="'минут'"
+          :seconds-txt="'секунд'"
+        />
+      </h3>
       <el-row>
         <el-col :span="2">
-          <el-form-item label="Цена" prop="startPrice">
-            <el-input v-model="form.startPrice" type="number" />
+          <el-form-item label="Цена" prop="price">
+            <el-input v-model="form.price" type="number" />
           </el-form-item>
         </el-col>
         <el-col :span="2">
@@ -123,19 +136,21 @@ export default {
   data() {
     return {
       form: {
-        name: '',
-        countryId: null,
+        batchSize: null,
+        address: null,
       },
       statuses: [
         { value: 'reserveFunds', label: 'Резервирование' },
-        { value: 'dispatchGoogs', label: 'Отправка товара' }, // value ??
-        { value: 'closeDeal', label: 'Закрытие сделки' }, // value ??
+        { value: 'sendProduct', label: 'Отправка товара' },
+        { value: 'done', label: 'Закрытие сделки' },
       ],
       batchUnitSizes,
       currencies,
-
       show: false,
-      rules: {},
+      rules: {
+        batchSize: [{ required: true, message: 'Введите объем' }],
+        address: [{ required: true, message: 'Введите адрес' }],
+      },
     }
   },
 
@@ -216,3 +231,16 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.timer {
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.timer > div {
+  color: red;
+  display: inline-block;
+  font-style: normal;
+}
+</style>

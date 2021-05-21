@@ -1,4 +1,5 @@
 import Vue from 'vue'
+import VueCountdownTimer from 'vuejs-countdown-timer'
 
 import 'normalize.css/normalize.css' // A modern alternative to CSS resets
 
@@ -19,6 +20,7 @@ import '@/icons' // icon
 import '@/permission' // permission control
 
 Vue.use(ElementUI, { locale })
+Vue.use(VueCountdownTimer)
 
 import vSelect from '@/components/select'
 Vue.component('v-select', vSelect)
