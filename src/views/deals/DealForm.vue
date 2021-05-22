@@ -1,7 +1,7 @@
 <template>
   <div class="app-container deal-form">
     <el-form ref="ruleForm" :rules="rules" :model="form" label-width="160px" label-position="top">
-      <el-row class="center">
+      <el-row class="flex center">
         <el-col :span="12">
           <h3 class="timer">
             Покупатель резервирует средства |&emsp;
@@ -20,7 +20,7 @@
         <el-col :span="12" class="t-a-c">
           <el-button type="success" @click="showDocuments = true">Просмотреть документы</el-button>
           <el-dialog :visible.sync="showDocuments" title="Документы">
-            <template v-if="form.documents">
+            <template v-if="form.documents.length">
               <p v-for="document in form.documents" :key="document">{{ document }}</p>
             </template>
             <p v-else>Документов нет</p>
@@ -43,54 +43,62 @@
         </el-col>
       </el-row>
 
-      <el-row>
-        <el-col :span="2">
-          <p>
-            {{ form.price }}
-            <span class="success">{{ currencySymbols[form.currency] }}</span>
-          </p>
-        </el-col>
-        <el-col :span="2" :offset="1">
-          <el-form-item label="Обьем" prop="batchSize">
-            <el-input v-model="form.batchSize" type="number" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="2">
-          <el-form-item label="тип" prop="batchSizeUnit">
-            <el-select v-model="form.batchSizeUnit" placeholder="Тип">
-              <el-option
-                v-for="item in batchUnitSizes"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              />
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="4" :offset="1">
-          <el-form-item label="Статус" prop="status">
-            <el-select v-model="form.status" placeholder="Выберите статус">
-              <el-option
-                v-for="item in statuses"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              />
-            </el-select>
-          </el-form-item>
-        </el-col>
-      </el-row>
+      <!-- FIXME: remove unusable class 'rel' after chat implement -->
+      <el-row class="rel">
+        <el-col :span="12">
+          <el-carousel :interval="5000" arrow="always">
+            <el-carousel-item v-for="item in 4" :key="item">
+              <h3>{{ item }}</h3>
+            </el-carousel-item>
+          </el-carousel>
 
-      <el-row>
-        <el-col :span="14">
-          <el-form-item prop="description" label="Описание">
-            <el-input
-              v-model="form.description"
-              :autosize="{ minRows: 5, maxRows: 5 }"
-              type="textarea"
-              placeholder="Введите описание..."
-            />
-          </el-form-item>
+          <el-row>
+            <el-col :span="24">
+              <el-col :span="5">
+                <h5>Цена</h5>
+                <p>
+                  {{ form.price }}
+                  <span class="success">{{ currencySymbols[form.currency] }}</span>
+                </p>
+              </el-col>
+              <el-col :span="9">
+                <el-form-item label="Обьем" prop="batchSize">
+                  <el-input v-model="form.batchSize" type="number" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="4">
+                <el-form-item label="тип" prop="batchSizeUnit">
+                  <el-select v-model="form.batchSizeUnit" placeholder="Тип">
+                    <el-option
+                      v-for="item in batchUnitSizes"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value"
+                    />
+                  </el-select>
+                </el-form-item>
+              </el-col>
+              <el-col :span="5" :offset="1" style="text-align:right;">
+                <h5>Статус</h5>
+                <p>
+                  {{ form.status }}
+                </p>
+              </el-col>
+            </el-col>
+          </el-row>
+
+          <el-row class="description">
+            <el-col :span="24">
+              <h5>Описание</h5>
+              <p>
+                {{ form.description }}
+              </p>
+            </el-col>
+          </el-row>
+        </el-col>
+
+        <el-col :span="10" :offset="2" class="chat">
+          <div />
         </el-col>
       </el-row>
 
@@ -284,10 +292,18 @@ export default {
   }
 }
 
-.center {
+.flex {
   display: flex;
+}
+
+.center {
   align-items: center;
   justify-content: space-between;
+}
+
+.between {
+  justify-content: space-between;
+  align-items: center;
 }
 
 .t-a-c {
@@ -300,5 +316,31 @@ export default {
 
 .progress {
   margin: 30px auto;
+}
+
+.rel {
+  position: relative;
+}
+
+.chat {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  border: 1px solid black;
+  transform: translateX(120%);
+}
+
+h5 {
+  color: #606266;
+  margin: 0;
+  padding-bottom: 5px;
+  font-size: 14px;
+  line-height: 40px;
+}
+
+p {
+  color: #606266;
 }
 </style>
