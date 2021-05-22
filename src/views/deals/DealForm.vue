@@ -1,36 +1,54 @@
 <template>
   <div class="app-container deal-form">
     <el-form ref="ruleForm" :rules="rules" :model="form" label-width="160px" label-position="top">
-      <h3 class="timer">
-        Покупатель резервирует средства |
-        <vue-countdown-timer
-          :start-time="Date.now()"
-          :end-time="new Date(form.createdAt).getTime() + 1000 * 60 * 60 * 24 * 3"
-          :interval="1000"
-          :end-text="'Покупатель не зарезирвировал средства'"
-          :day-txt="''"
-          :hour-txt="'часов'"
-          :minutes-txt="'минут'"
-          :seconds-txt="'секунд'"
-        />
-      </h3>
+      <el-row class="center">
+        <el-col :span="12">
+          <h3 class="timer">
+            Покупатель резервирует средства |&emsp;
+            <vue-countdown-timer
+              :start-time="Date.now()"
+              :end-time="new Date(form.createdAt).getTime() + 1000 * 60 * 60 * 24 * 3"
+              :interval="1000"
+              :end-text="'Покупатель не зарезирвировал средства'"
+              :day-txt="''"
+              :hour-txt="'часов'"
+              :minutes-txt="'минут'"
+              :seconds-txt="'секунд'"
+            />
+          </h3>
+        </el-col>
+        <el-col :span="12" class="t-a-c">
+          <el-button type="success" @click="showDocuments = true">Просмотреть документы</el-button>
+          <el-dialog :visible.sync="showDocuments" title="Документы">
+            <template v-if="form.documents">
+              <p v-for="document in form.documents" :key="document">{{ document }}</p>
+            </template>
+            <p v-else>Документов нет</p>
+          </el-dialog>
+          <template v-if="!isArbitr">
+            <el-button type="warning" @click="isArbitr = true">Арбитраж</el-button>
+            <el-button type="warning" style="margin: 0;">Отменить</el-button>
+          </template>
+          <el-button v-else type="warning">Сделка на арбитраже</el-button>
+        </el-col>
+      </el-row>
+
+      <el-row class="progress">
+        <el-col :span="24" :offset="3">
+          <el-steps :space="getInnerWidth()" :active="activeStep" finish-status="success">
+            <el-step title="Резервирование средств" />
+            <el-step title="Отправка товара" />
+            <el-step title="Закрытие сделки" />
+          </el-steps>
+        </el-col>
+      </el-row>
+
       <el-row>
         <el-col :span="2">
-          <el-form-item label="Цена" prop="price">
-            <el-input v-model="form.price" type="number" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="2">
-          <el-form-item label="Валюта" prop="currency">
-            <el-select v-model="form.currency" placeholder="тип">
-              <el-option
-                v-for="item in currencies"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              />
-            </el-select>
-          </el-form-item>
+          <p>
+            {{ form.price }}
+            <span class="success">{{ currencySymbols[form.currency] }}</span>
+          </p>
         </el-col>
         <el-col :span="2" :offset="1">
           <el-form-item label="Обьем" prop="batchSize">
@@ -122,7 +140,7 @@ import validateForm from '@/mixins/validateForm'
 import confirmUpdate from '@/mixins/confirmUpdate'
 import AsyncSelect from '@/components/AsyncSelect'
 
-import { batchUnitSizes, currencies } from '@/utils/variables'
+import { batchUnitSizes, currencies, currencySymbols } from '@/utils/variables'
 
 export default {
   name: 'DealsForm',
@@ -146,11 +164,15 @@ export default {
       ],
       batchUnitSizes,
       currencies,
+      currencySymbols,
       show: false,
       rules: {
         batchSize: [{ required: true, message: 'Введите объем' }],
         address: [{ required: true, message: 'Введите адрес' }],
       },
+      isArbitr: false,
+      showDocuments: false,
+      activeStep: 0,
     }
   },
 
@@ -172,11 +194,29 @@ export default {
       await this.fetchData()
     },
 
+    getInnerWidth() {
+      return window.innerWidth / 2 - 50
+    },
+
+    changeActiveStep(stageStatus) {
+      switch (stageStatus) {
+        case 'reserveFunds':
+          return (this.activeStep = 0)
+        case 'sendProduct':
+          return (this.activeStep = 1)
+        case 'done':
+          return (this.activeStep = 2)
+        default:
+          return (this.activeStep = 3)
+      }
+    },
+
     async fetchData() {
       const dealService = this.$apiClient.service('deals')
       const res = await dealService.get(this.$route.params.id)
 
       this.form = res
+      this.changeActiveStep(res.stageStatus)
     },
 
     async onEdit() {
@@ -232,15 +272,33 @@ export default {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .timer {
   font-size: 16px;
   font-weight: 400;
+
+  & > div {
+    color: red;
+    display: inline-block;
+    font-style: normal;
+  }
 }
 
-.timer > div {
-  color: red;
-  display: inline-block;
-  font-style: normal;
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.t-a-c {
+  text-align: center;
+}
+
+.success {
+  color: #67c23a;
+}
+
+.progress {
+  margin: 30px auto;
 }
 </style>
