@@ -45,10 +45,10 @@
               :to="{ name: 'editNews', params: { id: scope.row.id } }"
               tag="button"
               class="el-button el-button--default el-button--small"
-              ><i class="el-icon-edit"
+            ><i class="el-icon-edit"
             /></router-link>
             <el-button size="small" @click="handleDelete(scope.row.id)"
-              ><i class="el-icon-delete"
+            ><i class="el-icon-delete"
             /></el-button>
           </div>
         </template>

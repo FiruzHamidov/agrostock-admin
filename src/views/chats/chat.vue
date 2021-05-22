@@ -57,7 +57,7 @@
 
     <div class="chat__input">
       <div class="chat__input-file">
-        <input ref="uploader" style="display: none;" type="file" @change="onFileChange" />
+        <input ref="uploader" style="display: none;" type="file" @change="onFileAttach" />
 
         <div v-if="!sendMessage.fileId" class="chat__input-file-attach" @click="onAttachClick">
           <img :src="require('@/assets/paperclip.svg')" alt="attach" />
