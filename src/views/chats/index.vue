@@ -23,20 +23,22 @@
         >
           <div class="list-item__name">
             <div
-              v-for="(client, index) in chat.chatClients"
-              :key="client.id"
+              v-for="(company, index) in chat.chatCompanies"
+              :key="company.id"
               :class="{
                 'list-item__chat-user': true,
                 'list-item__chat-user--left': index === 0,
                 'list-item__chat-user--right': index === 1,
               }"
             >
-              <img
+              <!-- <img
                 :src="client.photo ? client.photo.path : require('@/assets/userpic.png')"
                 alt="img"
                 class="list-item__chat-user__ava"
-              >
-              <div class="list-item__chat-user__name">{{ client.instUsername }}</div>
+              > -->
+              <div class="list-item__chat-user__name">
+                {{ company.organizationName }} - {{ company.contactPhone }}
+              </div>
             </div>
             <!-- <p v-for="client in chat.chatClients" :key="client.id">{{ client.instUsername }}</p> -->
           </div>
