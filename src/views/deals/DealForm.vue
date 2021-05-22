@@ -20,7 +20,7 @@
         <el-col :span="12" class="t-a-c">
           <el-button type="success" @click="showDocuments = true">Просмотреть документы</el-button>
           <el-dialog :visible.sync="showDocuments" title="Документы">
-            <template v-if="form.documents.length">
+            <template v-if="form.documents">
               <p v-for="document in form.documents" :key="document">{{ document }}</p>
             </template>
             <p v-else>Документов нет</p>
@@ -111,7 +111,7 @@
                 <template v-for="(message, index) in messages">
                   <div
                     v-if="messages[index - 1] && isDisplayTime(index)"
-                    :key="index + messages.length + 1"
+                    :key="message.id"
                     class="date"
                   >
                     <p>
@@ -318,7 +318,7 @@ export default {
           this.$refs.messagesWrapper &&
           this.$refs.messagesWrapper.scrollHeight - this.$refs.messagesWrapper.scrollTop < 900
         ) {
-          const isSmooth = oldVal && val.length !== 0 && val.length - oldVal.length <= 2
+          const isSmooth = oldVal && val && val.length !== 0 && val.length - oldVal.length <= 2
           setTimeout(() => this.scrollToBottom(isSmooth), 10)
         }
       },
