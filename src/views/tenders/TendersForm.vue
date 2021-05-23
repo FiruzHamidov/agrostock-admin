@@ -150,7 +150,7 @@
                 :value="form.countryId"
                 :reduce="val => val.country_id"
                 service="countries"
-                label="title_ru"
+                label="name"
                 placeholder="Выберите страну"
                 @value-changed="v => form.countryId = v"
               />
@@ -162,7 +162,7 @@
                 :reduce="val => val.city_id"
                 :additional-query="{ country_id: form.countryId }"
                 service="cities"
-                label="title_ru"
+                label="name"
                 placeholder="Выберите город"
                 @value-changed="v => form.cityId = v"
               />
@@ -181,7 +181,7 @@
                 :value="form.productionCountryId"
                 :reduce="val => val.country_id"
                 service="countries"
-                label="title_ru"
+                label="name"
                 placeholder="Выберите страну"
                 @value-changed="v => form.productionCountryId = v"
               />
@@ -193,7 +193,7 @@
                 :reduce="val => val.city_id"
                 :additional-query="{ country_id: form.productionCountryId }"
                 service="cities"
-                label="title_ru"
+                label="name"
                 placeholder="Выберите город"
                 @value-changed="v => form.productionCityId = v"
               />
