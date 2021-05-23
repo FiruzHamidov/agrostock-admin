@@ -1,50 +1,54 @@
 <template>
   <div class="app-container deal-form">
     <el-form ref="ruleForm" :rules="rules" :model="form" label-width="160px" label-position="top">
-      <el-row class="flex center">
-        <el-col :span="12">
-          <h3 class="timer">
-            Покупатель резервирует средства |&emsp;
-            <vue-countdown-timer
-              :start-time="Date.now()"
-              :end-time="new Date(form.createdAt).getTime() + 1000 * 60 * 60 * 24 * 3"
-              :interval="1000"
-              :end-text="'Покупатель не зарезирвировал средства'"
-              :day-txt="''"
-              :hour-txt="'часов'"
-              :minutes-txt="'минут'"
-              :seconds-txt="'секунд'"
-            />
-          </h3>
-        </el-col>
-        <el-col :span="12" class="t-a-c">
-          <el-button type="success" @click="showDocuments = true">Просмотреть документы</el-button>
-          <el-dialog :visible.sync="showDocuments" title="Документы">
-            <template v-if="form.documents">
-              <p v-for="document in form.documents" :key="document">{{ document }}</p>
+      <div class="border">
+        <el-row class="flex center">
+          <el-col :span="12">
+            <h3 class="timer">
+              Покупатель резервирует средства |&emsp;
+              <vue-countdown-timer
+                :start-time="Date.now()"
+                :end-time="new Date(form.createdAt).getTime() + 1000 * 60 * 60 * 24 * 3"
+                :interval="1000"
+                :end-text="'Покупатель не зарезирвировал средства'"
+                :day-txt="''"
+                :hour-txt="'часов'"
+                :minutes-txt="'минут'"
+                :seconds-txt="'секунд'"
+              />
+            </h3>
+          </el-col>
+          <el-col :span="12" class="t-a-c">
+            <el-button type="success" @click="showDocuments = true"
+            >Просмотреть документы</el-button
+            >
+            <el-dialog :visible.sync="showDocuments" title="Документы">
+              <template v-if="form.documents">
+                <p v-for="document in form.documents" :key="document">{{ document }}</p>
+              </template>
+              <p v-else>Документов нет</p>
+            </el-dialog>
+            <template v-if="!isArbitr">
+              <el-button type="warning" @click="isArbitr = true">Арбитраж</el-button>
+              <el-button type="warning" style="margin: 0;">Отменить</el-button>
             </template>
-            <p v-else>Документов нет</p>
-          </el-dialog>
-          <template v-if="!isArbitr">
-            <el-button type="warning" @click="isArbitr = true">Арбитраж</el-button>
-            <el-button type="warning" style="margin: 0;">Отменить</el-button>
-          </template>
-          <el-button v-else type="warning">Сделка на арбитраже</el-button>
-        </el-col>
-      </el-row>
+            <el-button v-else type="warning">Сделка на арбитраже</el-button>
+          </el-col>
+        </el-row>
 
-      <el-row class="progress">
-        <el-col :span="24" :offset="3">
-          <el-steps :space="getInnerWidth()" :active="activeStep" finish-status="success">
-            <el-step title="Резервирование средств" />
-            <el-step title="Отправка товара" />
-            <el-step title="Закрытие сделки" />
-          </el-steps>
-        </el-col>
-      </el-row>
+        <el-row class="progress">
+          <el-col :span="24" :offset="3">
+            <el-steps :space="getInnerWidth()" :active="activeStep" finish-status="success">
+              <el-step title="Резервирование средств" />
+              <el-step title="Отправка товара" />
+              <el-step title="Закрытие сделки" />
+            </el-steps>
+          </el-col>
+        </el-row>
+      </div>
 
       <el-row>
-        <el-col :span="12">
+        <el-col :span="12" class="border descr">
           <el-carousel :interval="5000" arrow="always">
             <el-carousel-item v-for="item in 4" :key="item">
               <h3>{{ item }}</h3>
@@ -96,7 +100,7 @@
           </el-row>
         </el-col>
 
-        <el-col :span="10" :offset="2">
+        <el-col :span="11" :offset="1" class="border">
           <div class="chat single-chat">
             <div class="messages-wrapper">
               <loading :active.sync="isInitLoading" :is-full-page="false" />
@@ -128,8 +132,19 @@
                     class="message"
                   >
                     <div v-if="message.file" class="message__file">
-                      <img :src="message.file.path" alt="file" />
-                      <p class="message__file-name">{{ message.file.originalname }}</p>
+                      <template v-if="message.file.mimetype.indexOf('image') !== -1">
+                        <el-image
+                          :src="message.file.path"
+                          :preview-src-list="[message.file.path]"
+                          alt="file"
+                        />
+                        <p class="message__file-name">{{ message.file.originalname }}</p>
+                      </template>
+                      <template v-else>
+                        <a :href="message.file.path" target="_blank" rel="noopener noreferrer">{{
+                          message.file.originalname
+                        }}</a>
+                      </template>
                     </div>
                     <p class="message__text">{{ message.text }}</p>
                     <p class="message__date">{{ message.createdAt | getHours }}</p>
@@ -172,7 +187,7 @@
         </el-col>
       </el-row>
 
-      <el-row>
+      <el-row class="border">
         <el-col :span="4">
           <el-form-item prop="countryId" label="Страна получения">
             <AsyncSelect
@@ -357,14 +372,14 @@ export default {
 
     changeActiveStep(stageStatus) {
       switch (stageStatus) {
-        case 'reserveFunds':
-          return (this.activeStep = 0)
-        case 'sendProduct':
-          return (this.activeStep = 1)
-        case 'done':
-          return (this.activeStep = 2)
-        default:
-          return (this.activeStep = 3)
+      case 'reserveFunds':
+        return (this.activeStep = 0)
+      case 'sendProduct':
+        return (this.activeStep = 1)
+      case 'done':
+        return (this.activeStep = 2)
+      default:
+        return (this.activeStep = 3)
       }
     },
 
@@ -562,6 +577,27 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.border {
+  border-radius: 10px;
+  box-shadow: 0px 0px 10px 3px rgba(138, 139, 142, 0.5);
+  padding: 15px;
+  margin-bottom: 30px;
+}
+
+.descr {
+  padding: 5px 20px;
+  height: 37rem;
+}
+
+.el-image {
+  width: 100%;
+  max-height: 150px;
+
+  & > img {
+    object-fit: contain;
+  }
+}
+
 .timer {
   font-size: 16px;
   font-weight: 400;
@@ -690,11 +726,6 @@ p {
       padding-bottom: 5px;
       border-bottom: 1px dashed black;
 
-      img {
-        object-fit: contain;
-        width: 100%;
-        max-height: 150px;
-      }
       &-name {
         width: 70%;
         overflow: hidden;
@@ -746,6 +777,7 @@ p {
     &_system {
       width: 100%;
       background-color: #ff8c38;
+      align-self: center;
 
       &::after {
         display: none;

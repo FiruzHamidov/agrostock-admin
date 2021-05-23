@@ -21,7 +21,7 @@
     "@feathersjs/socketio-client": "^1.2.0",
     "axios": "0.18.0",
     "echarts": "^4.2.0-rc.2",
-    "element-ui": "2.4.6",
+    "element-ui": "2.15.1",
     "feathers-vuex": "^1.6.2",
     "file-saver": "^2.0.0",
     "js-cookie": "2.2.0",
