@@ -93,6 +93,8 @@ export default {
 
       const { data, total } = response
 
+      console.log(data)
+
       if (data.length === 0 && this.page > 1) {
         this.page -= 1
         return await this.fetchData()

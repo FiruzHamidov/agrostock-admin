@@ -20,7 +20,7 @@
           </el-col>
           <el-col :span="12" class="t-a-c">
             <el-button type="success" @click="showDocuments = true"
-              >Просмотреть документы</el-button
+            >Просмотреть документы</el-button
             >
             <el-dialog :visible.sync="showDocuments" title="Документы">
               <template v-if="form.documents">
@@ -372,14 +372,14 @@ export default {
 
     changeActiveStep(stageStatus) {
       switch (stageStatus) {
-        case 'reserveFunds':
-          return (this.activeStep = 0)
-        case 'sendProduct':
-          return (this.activeStep = 1)
-        case 'done':
-          return (this.activeStep = 2)
-        default:
-          return (this.activeStep = 3)
+      case 'reserveFunds':
+        return (this.activeStep = 0)
+      case 'sendProduct':
+        return (this.activeStep = 1)
+      case 'done':
+        return (this.activeStep = 2)
+      default:
+        return (this.activeStep = 3)
       }
     },
 

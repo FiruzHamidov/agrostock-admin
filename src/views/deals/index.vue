@@ -64,7 +64,6 @@
 </template>
 
 <script>
-import confirmUpdate from '@/mixins/confirmUpdate'
 import moment from 'moment'
 
 import { currencySymbols, batchUnitSizes } from '@/utils/variables'
@@ -80,8 +79,6 @@ export default {
       return moment(val).format('YYYY-MM-DD HH:mm')
     },
   },
-
-  mixins: [confirmUpdate],
 
   data() {
     return {
