@@ -190,6 +190,37 @@ export const constantRouterMap = [
   },
 
   {
+    path: '/products',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'Products',
+        component: () => import('@/views/products/index'),
+        meta: {
+          title: 'Товары',
+          icon: 'companies',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: 'edit/:id',
+        name: 'editProducts',
+        hidden: true,
+        component: () => import('@/views/products/ProductsForm'),
+        meta: {
+          title: 'Товар',
+          icon: 'companies',
+          roles: ['admin'],
+        },
+      },
+    ],
+    meta: {
+      availableRoles: ['admin'],
+    },
+  },
+
+  {
     path: '/tenders-reports',
     component: Layout,
     children: [
