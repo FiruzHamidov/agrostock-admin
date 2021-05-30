@@ -1,36 +1,36 @@
 <template>
   <div class="app-container">
-    <el-table v-loading="isLoading" :data="products" element-loading-text="Loading">
-      <el-table-column align="center" label="Номер товара" width="75">
+    <el-table v-loading="isLoading" :data="companies" element-loading-text="Loading">
+      <el-table-column align="center" label="Номер" width="75">
         <template slot-scope="scope">
           {{ scope.row.id }}
         </template>
       </el-table-column>
       <el-table-column align="center" label="Название">
         <template slot-scope="scope">
-          {{ scope.row.name }}
+          {{ scope.row.organizationName }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="Объем">
+      <el-table-column align="center" label="Email">
         <template slot-scope="scope">
-          {{ scope.row.batchSize }} {{ getBatchUnitSizesLabel(scope.row.batchSizeUnit) }}
+          {{ scope.row.email }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="Цена">
+      <el-table-column align="center" label="Телефон">
         <template slot-scope="scope">
-          {{ scope.row.unitPrice }} {{ currencySymbols[scope.row.currency] }}
+          {{ scope.row.phone }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="Владелец">
+      <el-table-column align="center" label="Контактный телефон">
         <template slot-scope="scope">
-          {{ scope.row.company.fullName }}
+          {{ scope.row.contactPhone }}
         </template>
       </el-table-column>
       <el-table-column align="center" fixed="right" label="Действия" width="200">
         <template slot-scope="scope">
           <div class="el-button-group">
             <router-link
-              :to="{ name: 'editProducts', params: { id: scope.row.id } }"
+              :to="{ name: 'editCompanies', params: { id: scope.row.id } }"
               tag="button"
               class="el-button el-button--default el-button--small"
             >
@@ -54,26 +54,16 @@
 </template>
 
 <script>
-import { currencySymbols, batchUnitSizes } from '@/utils/variables'
-
 export default {
-  name: 'Products',
-
-  props: {
-    companyId: {
-      type: Number,
-      default: -1,
-    },
-  },
+  name: 'Companies',
 
   data() {
     return {
-      products: [],
+      companies: [],
       isLoading: true,
       total: 1,
       limit: 10,
       page: 1,
-      currencySymbols,
     }
   },
 
@@ -83,38 +73,9 @@ export default {
 
   methods: {
     async fetchData() {
-      const productsService = this.$apiClient.service('products')
+      const companiesService = this.$apiClient.service('companies')
 
       this.isLoading = true
-
-      if (this.companyId !== -1) {
-        const query = {
-          $limit: this.limit,
-          $skip: this.page - 1 ? (this.page - 1) * this.limit : 0,
-          $sort: {
-            createdAt: -1,
-          },
-          companyId: this.companyId,
-        }
-
-        const response = await productsService.find({
-          query,
-        })
-
-        const { data, total } = response
-
-        if (data.length === 0 && this.page > 1) {
-          this.page -= 1
-          return await this.fetchData()
-        }
-
-        this.products = data
-        this.total = total
-
-        this.isLoading = false
-        return
-      }
-
       const query = {
         $limit: this.limit,
         $skip: this.page - 1 ? (this.page - 1) * this.limit : 0,
@@ -123,7 +84,7 @@ export default {
         },
       }
 
-      const response = await productsService.find({
+      const response = await companiesService.find({
         query,
       })
 
@@ -134,20 +95,16 @@ export default {
         return await this.fetchData()
       }
 
-      this.products = data
+      this.companies = data
       this.total = total
 
       this.isLoading = false
-      return
+      return true
     },
 
     handleSizeChange(pageSize) {
       this.limit = pageSize
       this.fetchData()
-    },
-
-    getBatchUnitSizesLabel(value) {
-      return batchUnitSizes.find(item => item.value === value).label
     },
   },
 }

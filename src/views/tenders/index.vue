@@ -97,6 +97,13 @@ export default {
 
   mixins: [confirmUpdate],
 
+  props: {
+    companyId: {
+      type: Number,
+      default: -1,
+    },
+  },
+
   data() {
     return {
       tenders: [],
@@ -125,8 +132,41 @@ export default {
   methods: {
     async fetchData() {
       const tendersService = this.$apiClient.service('tenders')
-
       this.isLoading = true
+
+      if (this.companyId !== -1) {
+        const query = {
+          $limit: this.limit,
+          $skip: this.page - 1 ? (this.page - 1) * this.limit : 0,
+          $sort: {
+            createdAt: -1,
+          },
+          companyId: this.companyId,
+        }
+
+        Object.keys(this.filters).forEach(key => {
+          if (this.filters[key]) {
+            query[key] = this.filters[key]
+          }
+        })
+        const response = await tendersService.find({
+          query,
+        })
+
+        const { data, total } = response
+
+        if (data.length === 0 && this.page > 1) {
+          this.page -= 1
+          return await this.fetchData()
+        }
+
+        this.tenders = data
+        this.total = total
+
+        this.isLoading = false
+        return true
+      }
+
       const query = {
         $limit: this.limit,
         $skip: this.page - 1 ? (this.page - 1) * this.limit : 0,
