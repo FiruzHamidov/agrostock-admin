@@ -53,7 +53,7 @@ export const constantRouterMap = [
         component: () => import('@/views/categories/index'),
         meta: {
           title: 'Категории',
-          icon: 'companies',
+          icon: 'categories',
           roles: ['admin'],
         },
       },
@@ -64,7 +64,7 @@ export const constantRouterMap = [
         component: () => import('@/views/categories/CategoryForm'),
         meta: {
           title: 'Добавление категории',
-          icon: 'companies',
+          icon: 'categories',
           roles: ['admin'],
         },
       },
@@ -75,7 +75,7 @@ export const constantRouterMap = [
         component: () => import('@/views/categories/CategoryForm'),
         meta: {
           title: 'Изменение категории',
-          icon: 'companies',
+          icon: 'categories',
           roles: ['admin'],
         },
       },
@@ -95,7 +95,7 @@ export const constantRouterMap = [
         component: () => import('@/views/news/index'),
         meta: {
           title: 'Новости',
-          icon: 'companies',
+          icon: 'news',
           roles: ['admin'],
         },
       },
@@ -106,7 +106,7 @@ export const constantRouterMap = [
         component: () => import('@/views/news/NewsForm'),
         meta: {
           title: 'Добавление новости',
-          icon: 'companies',
+          icon: 'news',
           roles: ['admin'],
         },
       },
@@ -117,7 +117,7 @@ export const constantRouterMap = [
         component: () => import('@/views/news/NewsForm'),
         meta: {
           title: 'Изменение новости',
-          icon: 'companies',
+          icon: 'news',
           roles: ['admin'],
         },
       },
@@ -137,7 +137,7 @@ export const constantRouterMap = [
         component: () => import('@/views/tenders/index'),
         meta: {
           title: 'Торги',
-          icon: 'companies',
+          icon: 'tenders',
           roles: ['admin'],
         },
       },
@@ -148,7 +148,7 @@ export const constantRouterMap = [
         component: () => import('@/views/tenders/TendersForm'),
         meta: {
           title: 'Изменение торгов',
-          icon: 'companies',
+          icon: 'tenders',
           roles: ['admin'],
         },
       },
@@ -168,7 +168,7 @@ export const constantRouterMap = [
         component: () => import('@/views/deals/index'),
         meta: {
           title: 'Сделки',
-          icon: 'companies',
+          icon: 'deals',
           roles: ['admin'],
         },
       },
@@ -179,7 +179,38 @@ export const constantRouterMap = [
         component: () => import('@/views/deals/DealForm'),
         meta: {
           title: 'Сделка',
-          icon: 'companies',
+          icon: 'deals',
+          roles: ['admin'],
+        },
+      },
+    ],
+    meta: {
+      availableRoles: ['admin'],
+    },
+  },
+
+  {
+    path: '/arbitrations',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'Arbitrations',
+        component: () => import('@/views/arbitration/index'),
+        meta: {
+          title: 'Арбитражи',
+          icon: 'arbitrations',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: 'edit/:id',
+        name: 'editArbitrations',
+        hidden: true,
+        component: () => import('@/views/arbitration/ArbitrationForm'),
+        meta: {
+          title: 'Арбитраж',
+          icon: 'arbitrations',
           roles: ['admin'],
         },
       },
@@ -199,7 +230,7 @@ export const constantRouterMap = [
         component: () => import('@/views/products/index'),
         meta: {
           title: 'Товары',
-          icon: 'companies',
+          icon: 'products',
           roles: ['admin'],
         },
       },
@@ -210,6 +241,37 @@ export const constantRouterMap = [
         component: () => import('@/views/products/ProductsForm'),
         meta: {
           title: 'Товар',
+          icon: 'products',
+          roles: ['admin'],
+        },
+      },
+    ],
+    meta: {
+      availableRoles: ['admin'],
+    },
+  },
+
+  {
+    path: '/companies',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'Companies',
+        component: () => import('@/views/companies/index'),
+        meta: {
+          title: 'Компании',
+          icon: 'companies',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: 'edit/:id',
+        name: 'editCompanies',
+        hidden: true,
+        component: () => import('@/views/companies/CompaniesForm'),
+        meta: {
+          title: 'Компания',
           icon: 'companies',
           roles: ['admin'],
         },
@@ -230,7 +292,7 @@ export const constantRouterMap = [
         component: () => import('@/views/tenders-reports/index'),
         meta: {
           title: 'Жалобы на торги',
-          icon: 'companies',
+          icon: 'complaint',
           roles: ['admin'],
         },
       },
@@ -250,7 +312,7 @@ export const constantRouterMap = [
         component: () => import('@/views/products-reports/index'),
         meta: {
           title: 'Жалобы на товар',
-          icon: 'companies',
+          icon: 'complaint',
           roles: ['admin'],
         },
       },

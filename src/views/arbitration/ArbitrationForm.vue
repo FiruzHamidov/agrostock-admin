@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container deal-form">
+  <div class="app-container arbitration-form">
     <el-form ref="ruleForm" :rules="rules" :model="form" label-width="160px" label-position="top">
       <div class="border">
         <el-row class="flex center">
@@ -24,17 +24,12 @@
             >
             <el-dialog :visible.sync="showDocuments" title="Документы">
               <template v-if="form.documents">
-                <p v-for="document in form.documents" :key="document + Math.random()">
+                <p v-for="(document, index) in form.documents" :key="document + index">
                   {{ document }}
                 </p>
               </template>
               <p v-else>Документов нет</p>
             </el-dialog>
-            <template v-if="!isArbitr">
-              <el-button type="warning" @click="isArbitr = true">Арбитраж</el-button>
-              <el-button type="warning" style="margin: 0;">Отменить</el-button>
-            </template>
-            <el-button v-else type="warning">Сделка на арбитраже</el-button>
           </el-col>
         </el-row>
 
@@ -52,7 +47,7 @@
       <el-row>
         <el-col :span="12" class="border descr">
           <el-carousel :interval="5000" arrow="always">
-            <el-carousel-item v-for="item in 4" :key="item">
+            <el-carousel-item v-for="item in 4" :key="item + Math.random()">
               <h3>{{ item }}</h3>
             </el-carousel-item>
           </el-carousel>
@@ -245,7 +240,7 @@ import AsyncSelect from '@/components/AsyncSelect'
 import { batchUnitSizes, currencies, currencySymbols } from '@/utils/variables'
 
 export default {
-  name: 'DealsForm',
+  name: 'ArbitrationsForm',
 
   components: {
     AsyncSelect,
@@ -386,8 +381,8 @@ export default {
     },
 
     async fetchData() {
-      const dealService = this.$apiClient.service('deals')
-      const res = await dealService.get(this.$route.params.id)
+      const arbitrationsService = this.$apiClient.service('deals')
+      const res = await arbitrationsService.get(this.$route.params.id)
 
       this.form = res
       this.changeActiveStep(res.stageStatus)
@@ -411,10 +406,10 @@ export default {
         return false
       }
 
-      const dealService = this.$apiClient.service('deals')
+      const arbitrationsService = this.$apiClient.service('deals')
 
       try {
-        await dealService.patch(this.$route.params.id, {
+        await arbitrationsService.patch(this.$route.params.id, {
           ...this.form,
         })
       } catch (err) {
@@ -430,7 +425,7 @@ export default {
         type: 'success',
       })
 
-      this.$router.push({ name: 'Deals' })
+      this.$router.push({ name: 'Arbitrations' })
     },
 
     async onCancel() {
@@ -445,7 +440,7 @@ export default {
         type: 'warning',
       })
 
-      this.$router.push({ name: 'Deals' })
+      this.$router.push({ name: 'Arbitrations' })
     },
 
     async addMessages() {

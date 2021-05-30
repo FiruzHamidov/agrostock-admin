@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <el-table v-loading="isLoading" :data="deals" element-loading-text="Loading">
+    <el-table v-loading="isLoading" :data="arbitrations" element-loading-text="Loading">
       <el-table-column align="center" label="Номер сделки" width="75">
         <template slot-scope="scope">
           {{ scope.row.id }}
@@ -40,7 +40,7 @@
         <template slot-scope="scope">
           <div class="el-button-group">
             <router-link
-              :to="{ name: 'editDeals', params: { id: scope.row.id } }"
+              :to="{ name: 'editArbitrations', params: { id: scope.row.id } }"
               tag="button"
               class="el-button el-button--default el-button--small"
             >
@@ -69,7 +69,7 @@ import moment from 'moment'
 import { currencySymbols, batchUnitSizes } from '@/utils/variables'
 
 export default {
-  name: 'Deals',
+  name: 'Arbitrations',
 
   filters: {
     toDateFormat: val => {
@@ -82,7 +82,7 @@ export default {
 
   data() {
     return {
-      deals: [],
+      arbitrations: [],
       isLoading: true,
       total: 1,
       limit: 10,
@@ -106,7 +106,7 @@ export default {
 
   methods: {
     async fetchData() {
-      const dealsService = this.$apiClient.service('deals')
+      const arbitrationsService = this.$apiClient.service('deals')
 
       this.isLoading = true
       const query = {
@@ -115,12 +115,10 @@ export default {
         $sort: {
           createdAt: -1,
         },
-        status: {
-          $ne: 'arbitration',
-        },
+        status: 'arbitration',
       }
 
-      const response = await dealsService.find({
+      const response = await arbitrationsService.find({
         query,
       })
 
@@ -131,7 +129,7 @@ export default {
         return await this.fetchData()
       }
 
-      this.deals = data
+      this.arbitrations = data
       this.total = total
 
       this.isLoading = false

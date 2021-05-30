@@ -11,7 +11,8 @@
     :infinite-loading="false"
     :placeholder="placeholder"
     @search="resetAddresses"
-    @input="addressChanged" />
+    @input="addressChanged"
+  />
 </template>
 
 <script>
