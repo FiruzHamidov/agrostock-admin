@@ -22,7 +22,7 @@
               :type="form.type === type.value ? 'success' : ''"
               round
               @click="form.type = type.value"
-              >{{ type.label }}</el-button
+            >{{ type.label }}</el-button
             >
           </el-form-item>
         </el-col>
@@ -332,7 +332,7 @@ export default {
       }
 
       const index = this.form.photosIds.findIndex(item => item.id === id)
-      this.form.photosIds[index] = [newId]
+      this.form.photosIds[index] = newId
     },
 
     async onEdit() {

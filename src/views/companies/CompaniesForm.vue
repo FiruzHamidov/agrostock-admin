@@ -165,13 +165,19 @@
           <el-row>
             <el-col>
               <h2>Документы</h2>
-              <div class="document">
-                <Upload
-                  v-for="document in form.documents"
-                  :id="document.id"
-                  :key="document.id + Math.random()"
-                />
-              </div>
+              <el-upload
+                :on-preview="handlePreview"
+                :on-success="handleChange"
+                :on-remove="handleRemove"
+                :file-list="form.documents"
+                :headers="headerInfo"
+                action="https://api.agrostock.pro/uploads"
+                class="document"
+                multiple
+                list-type="picture"
+              >
+                <el-button size="small" type="primary">Загрузить</el-button>
+              </el-upload>
             </el-col>
           </el-row>
 
@@ -196,16 +202,15 @@
 <script>
 import validateForm from '@/mixins/validateForm'
 import confirmUpdate from '@/mixins/confirmUpdate'
-import Upload from '@/components/Upload'
 import AsyncSelect from '@/components/AsyncSelect'
 import Products from '@/views/products'
 import Tenders from '@/views/tenders'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'CompaniesForm',
 
   components: {
-    Upload,
     AsyncSelect,
     Products,
     Tenders,
@@ -219,6 +224,17 @@ export default {
       show: false,
       rules: {},
     }
+  },
+
+  computed: {
+    ...mapGetters({
+      token: 'user/token',
+    }),
+    headerInfo() {
+      return {
+        Authorization: `Bearer ${this.token}`,
+      }
+    },
   },
 
   watch: {
@@ -239,14 +255,57 @@ export default {
       await this.fetchData()
     },
 
+    handleRemove(file) {
+      if (this.form.documents.length) {
+        this.form.documentsIds = this.form.documentsIds.filter(item => item !== file.id)
+        return
+      }
+
+      this.form.documentsIds = this.form.documentsIds.filter(item => item !== file.response[0].id)
+    },
+
+    handlePreview(file) {
+      window.open(file.path || file.response[0].path, '_blank')
+    },
+
+    handleChange(file) {
+      this.form.documentsIds = [...this.form.documentsIds, file[0].id]
+    },
+
+    getImgPath(url) {
+      if (url.match('.(jpg|png|bmp|ico|jpeg)$')) {
+        return url
+      }
+
+      if (url.match('.(pdf)$')) {
+        return 'https://aw-store.ru/upload/iblock/462/4621234c71b09c6cbf9b22f7b0164d50.png'
+      }
+
+      if (url.match('.(txt)$')) {
+        return 'https://img.icons8.com/ios/452/txt.png'
+      }
+
+      if (url.match('.(doc|docx)$')) {
+        return 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/.docx_icon.svg/1200px-.docx_icon.svg.png'
+      }
+
+      return 'https://i.pinimg.com/originals/7f/d2/e4/7fd2e46b2da9819e667fb75caf475cf7.png'
+    },
+
     async fetchData() {
       const companiesService = this.$apiClient.service('companies')
       const res = await companiesService.get(this.$route.params.id)
 
       this.form = res
+      this.form.documents.forEach(item => {
+        item.name = item.originalname
+        item.url = this.getImgPath(item.path)
+      })
     },
 
     async onEdit() {
+      this.form.documents.forEach(item => (delete item.name, delete item.url))
+
       try {
         await this.validateForm('ruleForm')
       } catch (err) {
