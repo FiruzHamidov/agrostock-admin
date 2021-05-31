@@ -1,21 +1,23 @@
 <template>
   <el-form-item label="Фото" class="avatar-uploader">
-    <img
-      v-if="imageUrl"
-      :src="imageUrl"
-      style="cursor: pointer"
-      class="avatar"
-      @click="toggleShow"
-    >
-    <div v-else class="avatar-uploader" @click="toggleShow">
-      <i class="el-icon-plus avatar-uploader-icon" />
+    <div class="uploader-container">
+      <img
+        v-if="imageUrl"
+        :src="imageUrl"
+        style="cursor: pointer"
+        class="avatar"
+        @click="toggleShow"
+      />
+      <div class="avatar-uploader" @click="toggleShow">
+        <i class="el-icon-plus avatar-uploader-icon" />
+      </div>
+      <crop-upload
+        :show="show"
+        @input="toggleShow"
+        @update-image-url="handleImageDataUrl"
+        @image-loaded="handleAvatarSuccess"
+      />
     </div>
-    <crop-upload
-      :show="show"
-      @input="toggleShow"
-      @update-image-url="handleImageDataUrl"
-      @image-loaded="handleAvatarSuccess"
-    />
     <el-button v-if="upload.path || imageUrl !== ''" type="danger" @click="deleteLogo">
       Удалить лого
     </el-button>
@@ -38,6 +40,8 @@ export default {
       default: 0,
     },
   },
+
+  emits: ['on-change', 'on-delete'],
 
   data() {
     return {
@@ -72,7 +76,7 @@ export default {
     async handleAvatarSuccess(res) {
       this.imageUrl = res[0].path
 
-      this.$emit('on-change', res[0].id)
+      this.$emit('on-change', this.id, res[0].id)
     },
 
     handleImageDataUrl(url) {
@@ -84,40 +88,46 @@ export default {
     },
 
     deleteLogo() {
-      this.$emit('on-change', null)
+      this.$emit('on-delete', null)
     },
   },
 }
 </script>
 
-<style>
+<style lang="scss" scoped>
 .line {
   text-align: center;
 }
 .avatar-uploader {
   position: relative;
   overflow: hidden;
-}
-.avatar-uploader .el-button {
-  margin-top: 15px;
-}
-.avatar-uploader-icon {
-  border: 1px dashed #d9d9d9;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 28px;
-  color: #8c939d;
-  width: 178px;
-  height: 178px;
-  line-height: 178px;
-  text-align: center;
-}
-.avatar-uploader-icon:hover {
-  border-color: #409eff;
+  .el-button {
+    margin-top: 15px;
+  }
+  .avatar-uploader-icon {
+    border: 1px dashed #d9d9d9;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 28px;
+    color: #8c939d;
+    width: 178px;
+    height: 178px;
+    line-height: 178px;
+    text-align: center;
+    &:hover {
+      border-color: #409eff;
+    }
+  }
 }
 .avatar {
   width: 178px;
   height: 178px;
   display: block;
+}
+.uploader-container {
+  display: flex;
+  .avatar-uploader {
+    margin-left: 20px;
+  }
 }
 </style>

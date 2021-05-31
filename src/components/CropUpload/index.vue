@@ -1,8 +1,6 @@
 <template>
   <crop-upload
     v-model="componentShow"
-    :width="800"
-    :height="600"
     :url="fileUrl"
     :headers="headerInfo"
     lang-type="ru"

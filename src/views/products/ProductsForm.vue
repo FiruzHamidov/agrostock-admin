@@ -22,7 +22,7 @@
               :type="form.type === type.value ? 'success' : ''"
               round
               @click="form.type = type.value"
-            >{{ type.label }}</el-button
+              >{{ type.label }}</el-button
             >
           </el-form-item>
         </el-col>
@@ -223,7 +223,18 @@
         <el-col>
           <h4>Фотографии <span>Используйте 200x200 px для лучшего обзора.</span></h4>
           <div class="photo">
-            <Upload v-for="photo in form.photos" :id="photo.id" :key="photo.id" />
+            <template v-if="form.photos.length">
+              <Upload
+                v-for="photo in form.photos"
+                :id="photo.id"
+                :key="photo.id"
+                @on-delete="deletePhoto(photo.id)"
+                @on-change="changePhoto"
+              />
+            </template>
+            <template v-else>
+              <Upload @on-change="changePhoto" @on-delete="deletePhoto" />
+            </template>
           </div>
         </el-col>
       </el-row>
@@ -297,6 +308,31 @@ export default {
       const res = await productsService.get(this.$route.params.id)
 
       this.form = res
+    },
+
+    async deletePhoto(id) {
+      try {
+        await this.confirmUpdate('Вы действительно хотите удалить фото?', 'Фото не будет удалено')
+        id
+          ? (this.form.photosIds = this.form.photos.filter(item => item.id !== id))
+          : (this.form.photosIds = [])
+        this.$message({
+          message: 'Фото будет удалено при изменении',
+          type: 'success',
+        })
+      } catch (err) {
+        return false
+      }
+    },
+
+    changePhoto(id, newId) {
+      if (id === 0) {
+        this.form.photosIds = [newId]
+        return
+      }
+
+      const index = this.form.photosIds.findIndex(item => item.id === id)
+      this.form.photosIds[index] = [newId]
     },
 
     async onEdit() {
