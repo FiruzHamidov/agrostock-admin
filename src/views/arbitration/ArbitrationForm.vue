@@ -22,14 +22,7 @@
             <el-button type="success" @click="showDocuments = true"
             >Просмотреть документы</el-button
             >
-            <el-dialog :visible.sync="showDocuments" title="Документы">
-              <template v-if="form.documents">
-                <p v-for="(document, index) in form.documents" :key="document + index">
-                  {{ document }}
-                </p>
-              </template>
-              <p v-else>Документов нет</p>
-            </el-dialog>
+            <DocumentView :documents="form.documents" :show-documents="showDocuments" />
           </el-col>
         </el-row>
 
@@ -236,6 +229,7 @@ import axios from 'axios'
 import validateForm from '@/mixins/validateForm'
 import confirmUpdate from '@/mixins/confirmUpdate'
 import AsyncSelect from '@/components/AsyncSelect'
+import DocumentView from '@/components/DocumentView'
 
 import { batchUnitSizes, currencies, currencySymbols } from '@/utils/variables'
 
@@ -246,6 +240,7 @@ export default {
     AsyncSelect,
     InfiniteLoading,
     Loading,
+    DocumentView,
   },
 
   filters: {

@@ -1,26 +1,34 @@
 <template>
   <div :dir="dir" :class="stateClasses" class="v-select">
     <div ref="toggle" class="vs__dropdown-toggle" @mousedown.prevent="toggleDropdown">
-
       <div ref="selectedOptions" class="vs__selected-options">
-        <slot v-for="option in selectedValue"
-              :option="normalizeOptionForSlot(option)"
-              :deselect="deselect"
-              :multiple="multiple"
-              :disabled="disabled"
-              name="selected-option-container">
+        <slot
+          v-for="option in selectedValue"
+          :option="normalizeOptionForSlot(option)"
+          :deselect="deselect"
+          :multiple="multiple"
+          :disabled="disabled"
+          name="selected-option-container"
+        >
           <span :key="option.index" class="vs__selected">
             <slot v-bind="normalizeOptionForSlot(option)" name="selected-option">
               {{ getOptionLabel(option) }}
             </slot>
-            <button v-if="multiple" :disabled="disabled" type="button" class="vs__deselect" aria-label="Deselect option" @click="deselect(option)">
+            <button
+              v-if="multiple"
+              :disabled="disabled"
+              type="button"
+              class="vs__deselect"
+              aria-label="Deselect option"
+              @click="deselect(option)"
+            >
               <component :is="childComponents.Deselect" />
             </button>
           </span>
         </slot>
 
         <slot v-bind="scope.search" name="search">
-          <input v-bind="scope.search.attributes" class="vs__search" v-on="scope.search.events">
+          <input v-bind="scope.search.attributes" class="vs__search" v-on="scope.search.events" />
         </slot>
       </div>
 
@@ -37,7 +45,11 @@
         </button>
 
         <slot v-bind="scope.openIndicator" name="open-indicator">
-          <component v-if="!noDrop" :is="childComponents.OpenIndicator" v-bind="scope.openIndicator.attributes"/>
+          <component
+            v-if="!noDrop"
+            :is="childComponents.OpenIndicator"
+            v-bind="scope.openIndicator.attributes"
+          />
         </slot>
 
         <slot v-bind="scope.spinner" name="spinner">
@@ -47,11 +59,21 @@
     </div>
 
     <transition :name="transition">
-      <ul v-if="dropdownOpen" ref="dropdownMenu" class="vs__dropdown-menu" role="listbox" @mousedown="onMousedown" @mouseup="onMouseUp">
+      <ul
+        v-if="dropdownOpen"
+        ref="dropdownMenu"
+        class="vs__dropdown-menu"
+        role="listbox"
+        @mousedown="onMousedown"
+        @mouseup="onMouseUp"
+      >
         <li
           v-for="(option, index) in filteredOptions"
           :key="index"
-          :class="{ 'vs__dropdown-option--selected': isOptionSelected(option), 'vs__dropdown-option--highlight': index === typeAheadPointer }"
+          :class="{
+            'vs__dropdown-option--selected': isOptionSelected(option),
+            'vs__dropdown-option--highlight': index === typeAheadPointer,
+          }"
           role="option"
           class="vs__dropdown-option"
           @mouseover="typeAheadPointer = index"
@@ -61,10 +83,7 @@
             {{ getOptionLabel(option) }}
           </slot>
         </li>
-        <infinite-loading
-          v-if="infiniteLoading"
-          ref="infiniteLoading"
-          @infinite="infiniteHandler">
+        <infinite-loading v-if="infiniteLoading" ref="infiniteLoading" @infinite="infiniteHandler">
           <span slot="no-more" />
           <span slot="no-results" />
         </infinite-loading>
@@ -87,7 +106,7 @@ import InfiniteLoading from 'vue-infinite-loading'
 export default {
   components: {
     ...childComponents,
-    InfiniteLoading
+    InfiniteLoading,
   },
   mixins: [pointerScroll, typeAheadPointer, ajax],
   props: {
@@ -101,7 +120,7 @@ export default {
     },
     option: {
       type: Object,
-      required: false
+      required: false,
     },
     options: {
       type: Array,
@@ -111,43 +130,43 @@ export default {
     },
     disabled: {
       type: Boolean,
-      default: false
+      default: false,
     },
     clearable: {
       type: Boolean,
-      default: true
+      default: true,
     },
     searchable: {
       type: Boolean,
-      default: true
+      default: true,
     },
     multiple: {
       type: Boolean,
-      default: false
+      default: false,
     },
     placeholder: {
       type: String,
-      default: ''
+      default: '',
     },
     transition: {
       type: String,
-      default: 'vs__fade'
+      default: 'vs__fade',
     },
     clearSearchOnSelect: {
       type: Boolean,
-      default: true
+      default: true,
     },
     closeOnSelect: {
       type: Boolean,
-      default: true
+      default: true,
     },
     label: {
       type: String,
-      default: 'label'
+      default: 'label',
     },
     autocomplete: {
       type: String,
-      default: 'off'
+      default: 'off',
     },
     reduce: {
       type: Function,
@@ -155,11 +174,11 @@ export default {
     },
     fetchData: {
       type: Function,
-      required: false
+      required: false,
     },
     infiniteLoading: {
       type: Boolean,
-      default: true
+      default: true,
     },
     getOptionLabel: {
       type: Function,
@@ -168,97 +187,97 @@ export default {
           if (!option.hasOwnProperty(this.label)) {
             return console.warn(
               `[vue-select warn]: Label key "option.${this.label}" does not` +
-              ` exist in options object ${JSON.stringify(option)}.\n` +
-              'http://sagalbot.github.io/vue-select/#ex-labels'
+                ` exist in options object ${JSON.stringify(option)}.\n` +
+                'http://sagalbot.github.io/vue-select/#ex-labels'
             )
           }
           return option[this.label]
         }
-        return option;
-      }
+        return option
+      },
     },
     onTab: {
       type: Function,
-      default: function () {
+      default: function() {
         if (this.selectOnTab) {
-          this.typeAheadSelect();
+          this.typeAheadSelect()
         }
       },
     },
     taggable: {
       type: Boolean,
-      default: false
+      default: false,
     },
     tabindex: {
       type: Number,
-      default: null
+      default: null,
     },
     pushTags: {
       type: Boolean,
-      default: false
+      default: false,
     },
     filterable: {
       type: Boolean,
-      default: true
+      default: true,
     },
     filterBy: {
       type: Function,
       default(option, label, search) {
         return (label || '').toLowerCase().indexOf(search.toLowerCase()) > -1
-      }
+      },
     },
     filter: {
-      "type": Function,
+      type: Function,
       default(options, search) {
-        return options.filter((option) => {
+        return options.filter(option => {
           let label = this.getOptionLabel(option)
           if (typeof label === 'number') {
             label = label.toString()
           }
           return this.filterBy(option, label, search)
-        });
-      }
+        })
+      },
     },
     createOption: {
       type: Function,
       default(newOption) {
         if (typeof this.optionList[0] === 'object') {
-          newOption = {[this.label]: newOption}
+          newOption = { [this.label]: newOption }
         }
         this.$emit('option:created', newOption)
         return newOption
-      }
+      },
     },
     resetOnOptionsChange: {
       type: Boolean,
-      default: false
+      default: false,
     },
     noDrop: {
       type: Boolean,
-      default: false
+      default: false,
     },
     inputId: {
-      type: String
+      type: String,
     },
     dir: {
       type: String,
-      default: 'auto'
+      default: 'auto',
     },
     selectOnTab: {
       type: Boolean,
-      default: false
+      default: false,
     },
     searchInputQuerySelector: {
       type: String,
-      default: '[type=search]'
-    }
+      default: '[type=search]',
+    },
   },
   data() {
     return {
       search: '',
       open: false,
       pushedTags: [],
-      _value: [] // Internal value managed by Vue Select if no `value` prop is passed
+      _value: [], // Internal value managed by Vue Select if no `value` prop is passed
     }
   },
   watch: {
@@ -276,7 +295,7 @@ export default {
           })
         }
       },
-      deep: true
+      deep: true,
     },
     option: {
       handler() {
@@ -289,7 +308,7 @@ export default {
           this.options.push(this.option)
         }
       },
-      deep: true
+      deep: true,
     },
     multiple() {
       this.clearSelection()
@@ -298,18 +317,18 @@ export default {
       handler() {
         this.init()
       },
-      deep: true
+      deep: true,
     },
     reduce: {
       handler() {
         this.init()
-      }
+      },
     },
     search() {
       if (this.infiniteLoading) {
         this.$refs.infiniteLoading.stateChanger.reset()
       }
-    }
+    },
   },
   mounted() {
     if (!this.infiniteLoading) {
@@ -322,12 +341,12 @@ export default {
   },
   methods: {
     init() {
-      this.mutableLoading = this.loading;
+      this.mutableLoading = this.loading
       if (this.$options.propsData.hasOwnProperty('reduce') && this.value) {
         if (Array.isArray(this.value)) {
-          this.$data._value = this.value.map(value => this.findOptionFromReducedValue(value));
+          this.$data._value = this.value.map(value => this.findOptionFromReducedValue(value))
         } else {
-          this.$data._value = this.findOptionFromReducedValue(this.value);
+          this.$data._value = this.findOptionFromReducedValue(this.value)
         }
       }
     },
@@ -340,14 +359,16 @@ export default {
         if (this.multiple) {
           option = this.selectedValue.concat(option)
         }
-        this.updateValue(option);
+        this.updateValue(option)
       }
       this.onAfterSelect(option)
     },
-    deselect (option) {
-      this.updateValue(this.selectedValue.filter(val => {
-        return !this.optionComparator(val, option);
-      }));
+    deselect(option) {
+      this.updateValue(
+        this.selectedValue.filter(val => {
+          return !this.optionComparator(val, option)
+        })
+      )
     },
     clearSelection() {
       this.updateValue(this.multiple ? [] : null)
@@ -361,41 +382,37 @@ export default {
         this.search = ''
       }
     },
-    updateValue (value) {
+    updateValue(value) {
       if (this.isTrackingValues) {
         // Vue select has to manage value
-        this.$data._value = value;
+        this.$data._value = value
       }
       if (value !== null) {
         if (Array.isArray(value)) {
-          value = value.map(val => this.reduce(val));
+          value = value.map(val => this.reduce(val))
         } else {
-          value = this.reduce(value);
+          value = this.reduce(value)
         }
       }
-      this.$emit('input', value);
+      this.$emit('input', value)
     },
-    toggleDropdown (e) {
-      const target = e.target;
-      const toggleTargets = [
-        this.$el,
-        this.searchEl,
-        this.$refs.toggle.$el,
-      ];
+    toggleDropdown(e) {
+      const target = e.target
+      const toggleTargets = [this.$el, this.searchEl, this.$refs.toggle.$el]
       if (typeof this.$refs.openIndicator !== 'undefined') {
         toggleTargets.push(
           this.$refs.openIndicator.$el,
           // the line below is a bit gross, but required to support IE11 without adding polyfills
-          ...Array.prototype.slice.call(this.$refs.openIndicator.$el.childNodes),
-        );
+          ...Array.prototype.slice.call(this.$refs.openIndicator.$el.childNodes)
+        )
       }
       if (toggleTargets.indexOf(target) > -1 || target.classList.contains('vs__selected')) {
         if (this.open) {
-          this.searchEl.blur(); // dropdown will close on blur
+          this.searchEl.blur() // dropdown will close on blur
         } else {
           if (!this.disabled) {
-            this.open = true;
-            this.searchEl.focus();
+            this.open = true
+            this.searchEl.focus()
           }
         }
       }
@@ -416,25 +433,32 @@ export default {
         if (value === this.reduce(option)) {
           return true
         }
-        if ((this.getOptionLabel(value) === this.getOptionLabel(option)) || (this.getOptionLabel(value) === option)) {
+        if (
+          this.getOptionLabel(value) === this.getOptionLabel(option) ||
+          this.getOptionLabel(value) === option
+        ) {
           return true
         }
         if (this.reduce(value) === this.reduce(option)) {
           return true
         }
       }
-      return false;
+      return false
     },
-    findOptionFromReducedValue (value) {
-      return this.options.find(option => JSON.stringify(this.reduce(option)) === JSON.stringify(value)) || value;
+    findOptionFromReducedValue(value) {
+      return (
+        this.options.find(
+          option => JSON.stringify(this.reduce(option)) === JSON.stringify(value)
+        ) || value
+      )
     },
-    closeSearchOptions(){
+    closeSearchOptions() {
       this.open = false
       this.$emit('search:blur')
     },
     maybeDeleteValue() {
       if (!this.searchEl.value.length && this.selectedValue && this.clearable) {
-        let value = null;
+        let value = null
         if (this.multiple) {
           value = [...this.selectedValue.slice(0, this.selectedValue.length - 1)]
         }
@@ -451,8 +475,8 @@ export default {
         return false
       })
     },
-    normalizeOptionForSlot (option) {
-      return (typeof option === 'object') ? option : {[this.label]: option};
+    normalizeOptionForSlot(option) {
+      return typeof option === 'object' ? option : { [this.label]: option }
     },
     maybePushTag(option) {
       if (this.pushTags) {
@@ -477,7 +501,7 @@ export default {
         return
       }
       // Fixed bug where no-options message could not be closed
-      if (this.search.length === 0 && this.options.length === 0){
+      if (this.search.length === 0 && this.options.length === 0) {
         this.closeSearchOptions()
         return
       }
@@ -492,33 +516,33 @@ export default {
     onMouseUp() {
       this.mousedown = false
     },
-    onSearchKeyDown (e) {
+    onSearchKeyDown(e) {
       switch (e.keyCode) {
         case 8:
           //  delete
-          return this.maybeDeleteValue();
+          return this.maybeDeleteValue()
         case 9:
           //  tab
-          return this.onTab();
+          return this.onTab()
       }
     },
-    onSearchKeyUp (e) {
+    onSearchKeyUp(e) {
       switch (e.keyCode) {
         case 27:
           //  esc
-          return this.onEscape();
+          return this.onEscape()
         case 38:
           //  up.prevent
-          e.preventDefault();
-          return this.typeAheadUp();
+          e.preventDefault()
+          return this.typeAheadUp()
         case 40:
           //  down.prevent
-          e.preventDefault();
-          return this.typeAheadDown();
+          e.preventDefault()
+          return this.typeAheadDown()
         case 13:
           //  enter.prevent
-          e.preventDefault();
-          return this.typeAheadSelect();
+          e.preventDefault()
+          return this.typeAheadSelect()
       }
     },
     async infiniteHandler($state) {
@@ -535,73 +559,77 @@ export default {
           $state.complete()
         }
       }
-    }
+    },
   },
   computed: {
-    isTrackingValues () {
-      return (typeof this.value === 'undefined' || this.$options.propsData.hasOwnProperty('reduce')) && this.value !== null && this.value != '';
+    isTrackingValues() {
+      return (
+        (typeof this.value === 'undefined' || this.$options.propsData.hasOwnProperty('reduce')) &&
+        this.value !== null &&
+        this.value != ''
+      )
     },
-    selectedValue () {
-      let value = this.value;
+    selectedValue() {
+      let value = this.value
       if (this.isTrackingValues) {
         // Vue select has to manage value internally
-        value = this.$data._value;
+        value = this.$data._value
       }
       if (value && value !== '' && value !== null) {
-        return [].concat(value);
+        return [].concat(value)
       }
-      return [];
+      return []
     },
-    optionList () {
-      return this.options.concat(this.pushedTags);
+    optionList() {
+      return this.options.concat(this.pushedTags)
     },
-    searchEl () {
+    searchEl() {
       return !!this.$scopedSlots['search']
         ? this.$refs.selectedOptions.querySelector(this.searchInputQuerySelector)
-        : this.$refs.search;
+        : this.$refs.search
     },
-    scope () {
+    scope() {
       return {
         search: {
           attributes: {
-            'disabled': this.disabled,
-            'placeholder': this.searchPlaceholder,
-            'tabindex': this.tabindex,
-            'readonly': !this.searchable,
-            'id': this.inputId,
+            disabled: this.disabled,
+            placeholder: this.searchPlaceholder,
+            tabindex: this.tabindex,
+            readonly: !this.searchable,
+            id: this.inputId,
             'aria-expanded': this.dropdownOpen,
             'aria-label': 'Search for option',
-            'ref': 'search',
-            'role': 'combobox',
-            'type': 'search',
-            'autocomplete': 'off',
-            'value': this.search,
+            ref: 'search',
+            role: 'combobox',
+            type: 'search',
+            autocomplete: 'off',
+            value: this.search,
           },
           events: {
-            'keydown': this.onSearchKeyDown,
-            'keyup': this.onSearchKeyUp,
-            'blur': this.onSearchBlur,
-            'focus': this.onSearchFocus,
-            'input': (e) => this.search = e.target.value
+            keydown: this.onSearchKeyDown,
+            keyup: this.onSearchKeyUp,
+            blur: this.onSearchBlur,
+            focus: this.onSearchFocus,
+            input: e => (this.search = e.target.value),
           },
         },
         spinner: {
-          loading: this.mutableLoading
+          loading: this.mutableLoading,
         },
         openIndicator: {
           attributes: {
-            'ref': 'openIndicator',
-            'role': 'presentation',
-            'class': 'vs__open-indicator',
+            ref: 'openIndicator',
+            role: 'presentation',
+            class: 'vs__open-indicator',
           },
         },
-      };
+      }
     },
-    childComponents () {
+    childComponents() {
       return {
         ...childComponents,
-        ...this.components
-      };
+        ...this.components,
+      }
     },
     stateClasses() {
       return {
@@ -611,29 +639,29 @@ export default {
         'vs--searchable': this.searchable && !this.noDrop,
         'vs--unsearchable': !this.searchable,
         'vs--loading': this.mutableLoading,
-        'vs--disabled': this.disabled
+        'vs--disabled': this.disabled,
       }
     },
     clearSearchOnBlur() {
       return this.clearSearchOnSelect && !this.multiple
     },
     searching() {
-      return !! this.search
+      return !!this.search
     },
     dropdownOpen() {
       return this.noDrop ? false : this.open && !this.mutableLoading
     },
     searchPlaceholder() {
       if (this.isValueEmpty && this.placeholder) {
-        return this.placeholder;
+        return this.placeholder
       }
     },
     filteredOptions() {
-      const optionList = [].concat(this.optionList);
+      const optionList = [].concat(this.optionList)
       if (!this.filterable && !this.taggable) {
-        return optionList;
+        return optionList
       }
-      let options = this.search.length ? this.filter(optionList, this.search, this) : optionList;
+      let options = this.search.length ? this.filter(optionList, this.search, this) : optionList
       if (this.taggable && this.search.length && !this.optionExists(this.search)) {
         options.unshift(this.search)
       }
@@ -641,11 +669,11 @@ export default {
       return options
     },
     isValueEmpty() {
-      return this.selectedValue.length === 0;
+      return this.selectedValue.length === 0
     },
     showClearButton() {
       return !this.multiple && this.clearable && !this.open && !this.isValueEmpty
-    }
+    },
   },
 }
 </script>

@@ -22,14 +22,7 @@
             <el-button type="success" @click="showDocuments = true"
             >Просмотреть документы</el-button
             >
-            <el-dialog :visible.sync="showDocuments" title="Документы">
-              <template v-if="form.documents">
-                <p v-for="document in form.documents" :key="document + Math.random()">
-                  {{ document }}
-                </p>
-              </template>
-              <p v-else>Документов нет</p>
-            </el-dialog>
+            <DocumentView :documents="form.documents" :show-documents="showDocuments" />
             <template v-if="!isArbitr">
               <el-button type="warning" @click="isArbitr = true">Арбитраж</el-button>
               <el-button type="warning" style="margin: 0;">Отменить</el-button>
@@ -241,6 +234,7 @@ import axios from 'axios'
 import validateForm from '@/mixins/validateForm'
 import confirmUpdate from '@/mixins/confirmUpdate'
 import AsyncSelect from '@/components/AsyncSelect'
+import DocumentView from '@/components/DocumentView'
 
 import { batchUnitSizes, currencies, currencySymbols } from '@/utils/variables'
 
@@ -251,6 +245,7 @@ export default {
     AsyncSelect,
     InfiniteLoading,
     Loading,
+    DocumentView,
   },
 
   filters: {
