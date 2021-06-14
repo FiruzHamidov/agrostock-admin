@@ -22,7 +22,7 @@
               :type="form.type === type.value ? 'success' : ''"
               round
               @click="form.type = type.value"
-            >{{ type.label }}</el-button
+              >{{ type.label }}</el-button
             >
           </el-form-item>
         </el-col>
@@ -91,7 +91,7 @@
             />
           </el-form-item>
         </el-col>
-        <el-col :span="5" :offset="1">
+        <!-- <el-col :span="5" :offset="1">
           <el-form-item prop="productionCityId" label="Город">
             <AsyncSelect
               :value="form.productionCity.name"
@@ -103,7 +103,7 @@
               @value-changed="v => (form.productionCityId = v)"
             />
           </el-form-item>
-        </el-col>
+        </el-col> -->
         <el-col :span="5" :offset="1">
           <h4>Возможна безопасная сделка?</h4>
           <el-radio v-model="form.isSafePossible" :label="true">Да</el-radio>
@@ -270,7 +270,10 @@ export default {
   data() {
     return {
       form: {},
-      types: [{ value: 'buy', label: 'Покупаю' }, { value: 'sell', label: 'Продаю' }],
+      types: [
+        { value: 'buy', label: 'Покупаю' },
+        { value: 'sell', label: 'Продаю' },
+      ],
       statuses: [
         { label: 'Активен', value: 'active' },
         { label: 'Закрыт', value: 'closed' },

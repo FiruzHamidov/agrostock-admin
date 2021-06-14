@@ -15,7 +15,7 @@
               service="categories"
               label="name"
               placeholder="Выберите категорию"
-              @value-changed="v => form.categoryId = v"
+              @value-changed="v => (form.categoryId = v)"
             />
           </el-form-item>
         </el-col>
@@ -85,7 +85,7 @@
                 </el-form-item>
               </el-col>
             </el-row>
-            
+
             <el-row>
               <el-col :span="11">
                 <el-form-item label="Налог" prop="taxType">
@@ -102,15 +102,11 @@
 
               <el-col :span="11" :offset="2">
                 <el-form-item label="Дата начала" prop="dateStart">
-                  <el-date-picker
-                    v-model="form.dateStart"
-                    type="datetime"
-                    placeholder="Date"
-                  />
+                  <el-date-picker v-model="form.dateStart" type="datetime" placeholder="Date" />
                 </el-form-item>
               </el-col>
             </el-row>
-            
+
             <el-row>
               <el-col :span="11">
                 <el-form-item label="Статус" prop="status">
@@ -127,20 +123,15 @@
 
               <el-col :span="11" :offset="2">
                 <el-form-item label="Дата завершения" prop="dateEnd">
-                  <el-date-picker
-                    v-model="form.dateEnd"
-                    type="datetime"
-                    placeholder="Date"
-                  />
+                  <el-date-picker v-model="form.dateEnd" type="datetime" placeholder="Date" />
                 </el-form-item>
               </el-col>
             </el-row>
-            
           </div>
         </el-col>
       </el-row>
 
-      <br>
+      <br />
 
       <el-row>
         <el-col :span="5">
@@ -152,7 +143,7 @@
                 service="countries"
                 label="name"
                 placeholder="Выберите страну"
-                @value-changed="v => form.countryId = v"
+                @value-changed="v => (form.countryId = v)"
               />
             </el-form-item>
 
@@ -164,7 +155,7 @@
                 service="cities"
                 label="name"
                 placeholder="Выберите город"
-                @value-changed="v => form.cityId = v"
+                @value-changed="v => (form.cityId = v)"
               />
             </el-form-item>
 
@@ -183,11 +174,11 @@
                 service="countries"
                 label="name"
                 placeholder="Выберите страну"
-                @value-changed="v => form.productionCountryId = v"
+                @value-changed="v => (form.productionCountryId = v)"
               />
             </el-form-item>
 
-            <el-form-item prop="productionCityId" label="Город">
+            <!-- <el-form-item prop="productionCityId" label="Город">
               <AsyncSelect
                 :value="form.productionCityId"
                 :reduce="val => val.city_id"
@@ -197,8 +188,7 @@
                 placeholder="Выберите город"
                 @value-changed="v => form.productionCityId = v"
               />
-            </el-form-item>
-
+            </el-form-item> -->
           </div>
         </el-col>
 
@@ -225,21 +215,24 @@
                   Доставка включена в стоимость
                 </el-checkbox>
               </el-form-item>
-              <el-input
-                v-model="form.deliveryPrice"
-                type="number"
-              />
+              <el-input v-model="form.deliveryPrice" type="number" />
             </el-form-item>
           </div>
         </el-col>
 
         <el-col :span="5" :offset="1">
-          <el-form-item :label="`Размер обеспечения участия - ${((form.participationAmount / 100) * +form.startPrice).toFixed(2)}`" prop="participationAmount">
+          <el-form-item
+            :label="`Размер обеспечения участия - ${(
+              (form.participationAmount / 100) *
+              +form.startPrice
+            ).toFixed(2)}`"
+            prop="participationAmount"
+          >
             <vue-slider v-model="form.participationAmount" :min="1" :max="10" :interval="1" />
           </el-form-item>
         </el-col>
       </el-row>
-      
+
       <!-- <Upload :id="form.photoId" /> -->
 
       <el-form-item>
@@ -278,7 +271,10 @@ export default {
         name: '',
         countryId: null,
       },
-      types: [{ value: 'sell', label: 'Продажа' }, { value: 'buy', label: 'Покупка' }],
+      types: [
+        { value: 'sell', label: 'Продажа' },
+        { value: 'buy', label: 'Покупка' },
+      ],
       statuses: [
         { value: 'wait', label: 'В ожидание' },
         { value: 'active', label: 'Активен' },
