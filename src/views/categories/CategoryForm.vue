@@ -47,9 +47,7 @@ export default {
 
   data() {
     return {
-      form: {
-        name: '',
-      },
+      form: {},
       firstCategoryId: null,
       secondCategoryId: null,
       thirdCategoryId: null,
@@ -89,11 +87,6 @@ export default {
         await this.fetchData()
       } else {
         this.isEdit = false
-        this.form = { name: '' }
-      }
-
-      for (const lang of this.languages) {
-        this.form[lang.code] = this.form[lang.code] || {}
       }
     },
 
@@ -103,13 +96,19 @@ export default {
           $limit: -1,
         },
       })
+      for (const lang of this.languages) {
+        this.form[lang.code] = this.form[lang.code] || {
+          languageId: lang.id,
+          name: '',
+        }
+      }
     },
 
     async fetchData() {
       const categoryService = this.$apiClient.service('categories')
       const res = await categoryService.get(this.$route.params.id, { query: { $getAllLang: true } })
 
-      this.form = res
+      this.form = {...this.form, ...res}
     },
 
     async onEdit() {
