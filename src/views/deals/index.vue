@@ -71,6 +71,13 @@ import { currencySymbols, batchUnitSizes } from '@/utils/variables'
 export default {
   name: 'Deals',
 
+  props: {
+    companyId: {
+      type: Number,
+      default: -1,
+    },
+  },
+
   filters: {
     toDateFormat: val => {
       if (!moment(val).isValid()) {
@@ -109,6 +116,35 @@ export default {
       const dealsService = this.$apiClient.service('deals')
 
       this.isLoading = true
+
+      if (this.companyId !== -1) {
+        const query = {
+          $limit: this.limit,
+          $skip: this.page - 1 ? (this.page - 1) * this.limit : 0,
+          $sort: {
+            createdAt: -1,
+          },
+          companyId: this.companyId,
+        }
+
+        const response = await dealsService.find({
+          query,
+        })
+
+        const { data, total } = response
+
+        if (data.length === 0 && this.page > 1) {
+          this.page -= 1
+          return await this.fetchData()
+        }
+
+        this.deals = data
+        this.total = total
+
+        this.isLoading = false
+        return
+      }
+
       const query = {
         $limit: this.limit,
         $skip: this.page - 1 ? (this.page - 1) * this.limit : 0,

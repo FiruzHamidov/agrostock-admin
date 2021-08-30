@@ -183,13 +183,17 @@
 
           <el-row>
             <el-form-item>
-              <el-button type="primary" @click="onEdit"> Изменить </el-button>
+              <el-button type="primary" @click="onEdit">Изменить</el-button>
               <el-button @click="onCancel">Отмена</el-button>
             </el-form-item>
           </el-row>
         </el-form>
       </el-tab-pane>
       <el-tab-pane label="Просмотр профиля">
+        <h2>Сделки</h2>
+        <Deals :company-id="form.id" />
+        <h2>Арбитражы</h2>
+        <Arbitrations :company-id="form.id" />
         <h2>Выставленные товары</h2>
         <Products :company-id="form.id" />
         <h2>Выставленные торги</h2>
@@ -203,6 +207,8 @@
 import validateForm from '@/mixins/validateForm'
 import confirmUpdate from '@/mixins/confirmUpdate'
 import AsyncSelect from '@/components/AsyncSelect'
+import Deals from '@/views/deals'
+import Arbitrations from '@/views/arbitration'
 import Products from '@/views/products'
 import Tenders from '@/views/tenders'
 import { mapGetters } from 'vuex'
@@ -212,6 +218,8 @@ export default {
 
   components: {
     AsyncSelect,
+    Deals,
+    Arbitrations,
     Products,
     Tenders,
   },
@@ -295,6 +303,8 @@ export default {
     async fetchData() {
       const companiesService = this.$apiClient.service('companies')
       const res = await companiesService.get(this.$route.params.id)
+
+      console.log(res)
 
       console.log(res)
 
