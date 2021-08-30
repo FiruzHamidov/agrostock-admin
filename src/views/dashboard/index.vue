@@ -1,5 +1,50 @@
 <template>
-  <div class="dashboard-container" />
+  <div class="dashboard-container">
+    <div class="stats">
+      <div class="line-charts">
+        <el-row v-if="lineChart">
+          <vue-element-loading :active="isLoading" spinner="bar-fade-scale" />
+          <p class="center-text text-style">Динамика заявок</p>
+          <line-chart :chart-data="lineChart" />
+        </el-row>
+      </div>
+      
+      <div class="line-charts" v-if="profitLineChart">
+        <el-row>
+          <vue-element-loading :active="isLoading" spinner="bar-fade-scale" />
+          <p class="center-text text-style">Динамика заявок</p>
+          <line-chart :chart-data="transformToProfitLineChart()" />
+        </el-row>
+      </div>
+
+      <div class="common" v-if="pieChart">
+        <div class="pie" v-if="pieChart.dealsStatuses">
+          <p class="center-text text-style">Разбиение заявок по федеральным законам</p>
+          <p class="text-style sum-text">
+            Количество заявок - {{ countSum(pieChart.dealsStatuses) }}
+          </p>
+          <pie-chart :chart-data="transformToPieChart(pieChart.dealsStatuses)" />
+        </div>
+        <div class="pie" v-if="pieChart.productsReports">
+          <p class="center-text text-style">Разбиение заявок по типу БГ</p>
+          <p class="text-style sum-text">Количество заявок - {{ countSum(pieChart.productsReports) }}</p>
+          <pie-chart :chart-data="transformToPieChart(pieChart.productsReports)" />
+        </div>
+        <div class="pie" v-if="pieChart.tendersReports">
+          <p class="center-text text-style">Разбиение заявок по федеральным законам</p>
+          <p class="text-style sum-text">
+            Количество заявок - {{ countSum(pieChart.tendersReports) }}
+          </p>
+          <pie-chart :chart-data="transformToPieChart(pieChart.tendersReports)" />
+        </div>
+        <div class="pie" v-if="pieChart.tendersStatuses">
+          <p class="center-text text-style">Разбиение заявок по типу БГ</p>
+          <p class="text-style sum-text">Количество заявок - {{ countSum(pieChart.tendersStatuses) }}</p>
+          <pie-chart :chart-data="transformToPieChart(pieChart.tendersStatuses)" />
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -28,52 +73,36 @@ export default {
 
   data() {
     return {
-      vacancies: {},
-      universityCounts: 0,
-      vacanciesCounts: 0,
-      studentsCounts: 0,
+      lineChart: null,
+      profitLineChart: null,
+      pieChart: {},
       isLoading: true,
     }
   },
-
-  computed: {
-    ...mapGetters({
-      activeCompanyId: 'companies/activeCompanyId',
-      roles: 'user/roles',
-      userType: 'user/userType',
-      email: 'user/email',
-    }),
-  },
-
+  
   mounted() {
     this.fetchData()
-
-    if (this.userType == 'admin') {
-      this.isAdmin = true
-    }
   },
 
   methods: {
-    ...mapActions({
-      setCompanyId: 'companies/setCompanyId',
-    }),
-
     async fetchData() {
       this.isLoading = true
 
       const query = {}
-      if (this.activeCompanyId) {
-        query.companyId = this.activeCompanyId
-      }
 
-      const res = await this.$apiClient.service('stats').find({
+      const res = await this.$apiClient.service('stats/line').find({
         query,
       })
+      this.lineChart = res
 
-      this.vacancies = res.vacancies
-      this.universityCounts = res.universityCounts
-      this.vacanciesCounts = res.vacanciesCounts
-      this.studentsCounts = res.studentsCounts
+      const profitRes = await this.$apiClient.service('stats/line-transactions').find({
+        query,
+      })
+      this.profitLineChart = profitRes.replenishment
+
+      this.pieChart = await this.$apiClient.service('stats/pie').find({
+        query,
+      })
 
       this.isLoading = false
     },
@@ -84,7 +113,19 @@ export default {
       this.fetchData()
     },
 
-    transformToPieChart(arr) {
+    transformToProfitLineChart() {
+      return {
+        dates: this.profitLineChart.map(e => e.date),
+        quantities: {
+          company: {
+            name: 'Прибыль',
+            data: this.profitLineChart.map(e => e.sum),
+          },
+        },
+      }
+    },
+
+    transformToPieChart(arr = []) {
       const chartValues = {}
       const seriesArr = []
       const legendArr = []
@@ -100,32 +141,18 @@ export default {
       }
 
       arr.forEach(e => {
-        const legendName = this.translates[e._id] ? this.translates[e._id] : e._id
-        legendArr.push(legendName)
+        legendArr.push(e.status || e.type)
         seriesArr.push({
-          value: e.count,
-          name: legendName,
+          value: e.value,
+          name: e.status || e.type,
         })
       })
 
       return { seriesArr, legendArr }
     },
 
-    transformToLineChart() {
-      const companyName = this.getCompanyName()
-      return {
-        dates: Object.keys(this.vacancies),
-        quantities: {
-          company: {
-            name: companyName,
-            data: Object.values(this.vacancies),
-          },
-        },
-      }
-    },
-
     countSum(arr) {
-      return arr.reduce((acc, e) => (acc += +e.count), 0)
+      return arr.reduce((acc, e) => (acc += +e.value), 0)
     },
 
     countDaysInMonth(selectedRange) {
