@@ -83,7 +83,7 @@
             </el-col>
           </el-row>
 
-          <el-row>
+          <el-row v-if="form.bankAccount">
             <h2>Данные счёта</h2>
             <el-col :span="7">
               <el-form-item label="Расчётный счёт" prop="currentAccount">
@@ -102,7 +102,7 @@
             </el-col>
           </el-row>
 
-          <el-row>
+          <el-row v-if="form.bankAccount">
             <el-col :span="23">
               <el-form-item label="Банк" prop="bankName">
                 <el-input v-model="form.bankAccount.bankName" />
@@ -295,6 +295,8 @@ export default {
     async fetchData() {
       const companiesService = this.$apiClient.service('companies')
       const res = await companiesService.get(this.$route.params.id)
+
+      console.log(res)
 
       this.form = res
       this.form.documents.forEach(item => {
