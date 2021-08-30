@@ -4,7 +4,7 @@
       <div class="line-charts">
         <el-row v-if="lineChart">
           <vue-element-loading :active="isLoading" spinner="bar-fade-scale" />
-          <p class="center-text text-style">Динамика заявок</p>
+          <p class="center-text text-style">Динамика товаров, торгов и сделок</p>
           <line-chart :chart-data="lineChart" />
         </el-row>
       </div>
@@ -12,34 +12,34 @@
       <div class="line-charts" v-if="profitLineChart">
         <el-row>
           <vue-element-loading :active="isLoading" spinner="bar-fade-scale" />
-          <p class="center-text text-style">Динамика заявок</p>
+          <p class="center-text text-style">Динамика прибыли</p>
           <line-chart :chart-data="transformToProfitLineChart()" />
         </el-row>
       </div>
 
       <div class="common" v-if="pieChart">
         <div class="pie" v-if="pieChart.dealsStatuses">
-          <p class="center-text text-style">Разбиение заявок по федеральным законам</p>
+          <p class="center-text text-style">Разбиение сделок по статусам</p>
           <p class="text-style sum-text">
-            Количество заявок - {{ countSum(pieChart.dealsStatuses) }}
+            Количество сделок - {{ countSum(pieChart.dealsStatuses) }}
           </p>
           <pie-chart :chart-data="transformToPieChart(pieChart.dealsStatuses)" />
         </div>
         <div class="pie" v-if="pieChart.productsReports">
-          <p class="center-text text-style">Разбиение заявок по типу БГ</p>
-          <p class="text-style sum-text">Количество заявок - {{ countSum(pieChart.productsReports) }}</p>
+          <p class="center-text text-style">Разбиение сделок по типу</p>
+          <p class="text-style sum-text">Количество сделок - {{ countSum(pieChart.productsReports) }}</p>
           <pie-chart :chart-data="transformToPieChart(pieChart.productsReports)" />
         </div>
         <div class="pie" v-if="pieChart.tendersReports">
-          <p class="center-text text-style">Разбиение заявок по федеральным законам</p>
+          <p class="center-text text-style">Разбиение тендеров по типу</p>
           <p class="text-style sum-text">
-            Количество заявок - {{ countSum(pieChart.tendersReports) }}
+            Количество тендеров - {{ countSum(pieChart.tendersReports) }}
           </p>
           <pie-chart :chart-data="transformToPieChart(pieChart.tendersReports)" />
         </div>
         <div class="pie" v-if="pieChart.tendersStatuses">
-          <p class="center-text text-style">Разбиение заявок по типу БГ</p>
-          <p class="text-style sum-text">Количество заявок - {{ countSum(pieChart.tendersStatuses) }}</p>
+          <p class="center-text text-style">Разбиение тендеров по типу статусам</p>
+          <p class="text-style sum-text">Количество тендеров - {{ countSum(pieChart.tendersStatuses) }}</p>
           <pie-chart :chart-data="transformToPieChart(pieChart.tendersStatuses)" />
         </div>
       </div>
