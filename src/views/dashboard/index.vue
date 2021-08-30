@@ -5,7 +5,7 @@
         <el-row v-if="lineChart">
           <vue-element-loading :active="isLoading" spinner="bar-fade-scale" />
           <p class="center-text text-style">Динамика товаров, торгов и сделок</p>
-          <line-chart :chart-data="lineChart" />
+          <line-chart-by-arrays :chart-data="lineChart" />
         </el-row>
       </div>
       
@@ -56,6 +56,7 @@ import moment from 'moment'
 import ExcelExport from '@/components/ExcelExport'
 import AsyncSelect from '@/components/AsyncSelect'
 
+import LineChartByArrays from './components/LineChartByArrays'
 import LineChart from './components/LineChart'
 import PieChart from './components/PieChart'
 
@@ -66,6 +67,7 @@ export default {
     StarRating,
     VueElementLoading,
     ExcelExport,
+    LineChartByArrays,
     LineChart,
     PieChart,
     AsyncSelect,
@@ -73,9 +75,13 @@ export default {
 
   data() {
     return {
-      lineChart: null,
+      lineChart: {
+        deals: [100, 120, 161, 134, 105, 160, 165],
+        products: [120, 82, 91, 154, 162, 140, 145],
+        tenders: [120, 70, 10, 154, 162, 10, 130]
+      },
       profitLineChart: null,
-      pieChart: {},
+      pieChart: null,
       isLoading: true,
     }
   },
@@ -93,6 +99,7 @@ export default {
       const res = await this.$apiClient.service('stats/line').find({
         query,
       })
+
       this.lineChart = res
 
       const profitRes = await this.$apiClient.service('stats/line-transactions').find({
