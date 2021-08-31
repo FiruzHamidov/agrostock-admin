@@ -18,29 +18,29 @@
       </div>
 
       <div class="common" v-if="pieChart">
-        <div class="pie" v-if="pieChart.dealsStatuses">
+        <div class="pie" v-if="pieChart.dealsStatuses && dealStatuses">
           <p class="center-text text-style">Разбиение сделок по статусам</p>
           <p class="text-style sum-text">
             Количество сделок - {{ countSum(pieChart.dealsStatuses) }}
           </p>
-          <pie-chart :chart-data="transformToPieChart(pieChart.dealsStatuses)" />
+          <pie-chart :chart-data="transformToPieChart(getPieChartsLabel(pieChart.dealsStatuses, dealStatuses, 'status'))" />
         </div>
         <div class="pie" v-if="pieChart.productsReports">
           <p class="center-text text-style">Разбиение сделок по типу</p>
           <p class="text-style sum-text">Количество сделок - {{ countSum(pieChart.productsReports) }}</p>
-          <pie-chart :chart-data="transformToPieChart(pieChart.productsReports)" />
+          <pie-chart :chart-data="transformToPieChart(getPieChartsLabel(pieChart.productsReports, productsReports, 'type'))" />
         </div>
         <div class="pie" v-if="pieChart.tendersReports">
           <p class="center-text text-style">Разбиение тендеров по типу</p>
           <p class="text-style sum-text">
             Количество тендеров - {{ countSum(pieChart.tendersReports) }}
           </p>
-          <pie-chart :chart-data="transformToPieChart(pieChart.tendersReports)" />
+          <pie-chart :chart-data="transformToPieChart(getPieChartsLabel(pieChart.tendersReports, tenderReports, 'type'))" />
         </div>
-        <div class="pie" v-if="pieChart.tendersStatuses">
+        <div class="pie" v-if="pieChart.tendersStatuses && tenderStatuses">
           <p class="center-text text-style">Разбиение тендеров по типу статусам</p>
           <p class="text-style sum-text">Количество тендеров - {{ countSum(pieChart.tendersStatuses) }}</p>
-          <pie-chart :chart-data="transformToPieChart(pieChart.tendersStatuses)" />
+          <pie-chart :chart-data="transformToPieChart(getPieChartsLabel(pieChart.tendersStatuses, tenderStatuses, 'status'))" />
         </div>
       </div>
     </div>
@@ -59,6 +59,8 @@ import AsyncSelect from '@/components/AsyncSelect'
 import LineChartByArrays from './components/LineChartByArrays'
 import LineChart from './components/LineChart'
 import PieChart from './components/PieChart'
+
+import { tenderStatuses, tenderReports, dealStatuses, productsReports } from '@/utils/variables'
 
 export default {
   name: 'Dashboard',
@@ -83,6 +85,10 @@ export default {
       profitLineChart: null,
       pieChart: null,
       isLoading: true,
+      tenderStatuses,
+      tenderReports,
+      dealStatuses,
+      productsReports,
     }
   },
   
@@ -137,6 +143,8 @@ export default {
       const seriesArr = []
       const legendArr = []
 
+      console.log(arr)
+
       if (arr.length === 0) {
         chartValues.x = {
           name: 'Нет данных',
@@ -161,30 +169,16 @@ export default {
     countSum(arr) {
       return arr.reduce((acc, e) => (acc += +e.value), 0)
     },
-
-    countDaysInMonth(selectedRange) {
-      const currentDate = moment(selectedRange[0], 'DD-MM-YYYY')
-      const endDate = selectedRange[1] !== '' ? moment(selectedRange[1]) : moment()
-
-      const dates = {}
-      dates[currentDate.format('DD-MM-YYYY')] = 0
-      while (currentDate.add(1, 'days').diff(endDate) <= 0) {
-        dates[currentDate.format('DD-MM-YYYY')] = 0
-      }
-
-      return dates
-    },
-
-    countHours() {
-      const hours = {}
-      for (let i = 1; i < 25; i++) {
-        hours[i] = 0
-      }
-      return hours
-    },
-
-    getCompanyName() {
-      return 'Сеть'
+    
+    getPieChartsLabel(arr, translateArr, field) {
+      const newArr = [...arr]
+      newArr.forEach((e, index) => {
+        const translated = translateArr.find(item => item.value === e[field])
+        if(translated){
+          newArr[index].status = translated.label
+        }
+      })
+      return newArr
     },
   },
 }

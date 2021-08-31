@@ -64,12 +64,30 @@ export const currencies = [
 ]
 
 export const tenderStatuses = [
-  { value: 'wait', text: 'Идут', desc: '' },
-  { value: 'active', text: 'Приостановлены', desc: '' },
-  { value: 'suspended', text: 'Ожидают запуска', desc: '' },
-  { value: 'doneWithWinner', text: 'Завершены', desc: 'Есть победитель' },
-  { value: 'doneWithoutWinner', text: 'Не завершены', desc: 'Нет победителя' },
-  // {value: 'banned', text: '', desc: ''},
+  { value: 'wait', label: 'Ожидают запуска', desc: '' },
+  { value: 'active', label: 'Активны', desc: '' },
+  { value: 'cancelled', label: 'Отменены', desc: '' },
+  { value: 'suspended', label: 'Приостановлены', desc: '' },
+  { value: 'doneWithWinner', label: 'Завершены', desc: 'Есть победитель' },
+  { value: 'doneWithoutWinner', label: 'Не завершены', desc: 'Нет победителя' },
+  { value: 'banned', label: 'Заблокированны', desc: '' },
+]
+
+export const tenderReports = [
+  { value: 'common', label: 'Обычный' },
+  { value: 'spam', label: 'Спам' },
+]
+
+export const dealStatuses = [
+  { value: 'active', label: 'Активны' },
+  { value: 'cancelled', label: 'Отменены' },
+  { value: 'done', label: 'Завершены' },
+  { value: 'arbitration', label: 'Арбитраж' },
+]
+
+export const productsReports = [
+  { value: 'common', label: 'Обычный' },
+  { value: 'spam', label: 'Спам' },
 ]
 
 export const currencySymbols = {
