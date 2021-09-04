@@ -180,11 +180,19 @@
               </el-upload>
             </el-col>
           </el-row>
+          
+          <el-row style="margin-bottom: 22px">
+            <el-col>
+              <h2>Баланс</h2>
+              <p>{{balance}}</p>
+            </el-col>
+          </el-row>
 
           <el-row>
             <el-form-item>
               <el-button type="primary" @click="onEdit">Изменить</el-button>
               <el-button @click="onCancel">Отмена</el-button>
+              <el-button type="danger" @click="onBlock">Заблокировать</el-button>
             </el-form-item>
           </el-row>
         </el-form>
@@ -230,6 +238,7 @@ export default {
     return {
       form: { id: this.$route.params.id },
       show: false,
+      balance: '',
       rules: {},
     }
   },
@@ -302,9 +311,9 @@ export default {
 
     async fetchData() {
       const companiesService = this.$apiClient.service('companies')
+      const companiesBalancesServices = this.$apiClient.service('companies-balances')
       const res = await companiesService.get(this.$route.params.id)
-
-      console.log(res)
+      const balance = await companiesBalancesServices.get(this.$route.params.id)
 
       console.log(res)
 
@@ -313,6 +322,8 @@ export default {
         item.name = item.originalname
         item.url = this.getImgPath(item.path)
       })
+
+      this.balance = balance.balance
     },
 
     async onEdit() {
@@ -365,6 +376,33 @@ export default {
       this.$message({
         message: 'Данные компании не изменены!',
         type: 'warning',
+      })
+
+      this.$router.push({ name: 'Companies' })
+    },
+
+    async onBlock(){
+      try {
+        await this.confirmUpdate('Заблокировать пользователя?', 'Отмена')
+      } catch (err) {
+        return false
+      }
+
+      const blockUserService = this.$apiClient.service('block-user')
+
+      try {
+        await blockUserService.create({userId: this.form.userId})
+      } catch (err) {
+        this.$message({
+          message: err.message,
+          type: 'error',
+        })
+        return false
+      }
+
+      this.$message({
+        message: 'Пользователь заблокирован!',
+        type: 'success',
       })
 
       this.$router.push({ name: 'Companies' })
