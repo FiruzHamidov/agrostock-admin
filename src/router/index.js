@@ -358,6 +358,26 @@ export const constantRouterMap = [
     },
   },
 
+  {
+    path: '/transactions',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'Transactions',
+        component: () => import('@/views/transactions/index'),
+        meta: {
+          title: 'Транзакции',
+          icon: 'transactions',
+          roles: ['admin'],
+        },
+      },
+    ],
+    meta: {
+      availableRoles: ['admin'],
+    },
+  },
+
   { path: '*', redirect: '/404', hidden: true },
 ]
 

@@ -143,8 +143,6 @@ export default {
       const seriesArr = []
       const legendArr = []
 
-      console.log(arr)
-
       if (arr.length === 0) {
         chartValues.x = {
           name: 'Нет данных',
