@@ -71,19 +71,19 @@ import { currencySymbols, batchUnitSizes } from '@/utils/variables'
 export default {
   name: 'Deals',
 
-  props: {
-    companyId: {
-      type: Number,
-      default: -1,
-    },
-  },
-
   filters: {
     toDateFormat: val => {
       if (!moment(val).isValid()) {
         return val
       }
       return moment(val).format('YYYY-MM-DD HH:mm')
+    },
+  },
+
+  props: {
+    companyId: {
+      type: Number,
+      default: -1,
     },
   },
 

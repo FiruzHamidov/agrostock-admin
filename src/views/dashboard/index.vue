@@ -9,7 +9,7 @@
         </el-row>
       </div>
       
-      <div class="line-charts" v-if="profitLineChart">
+      <div v-if="profitLineChart" class="line-charts">
         <el-row>
           <vue-element-loading :active="isLoading" spinner="bar-fade-scale" />
           <p class="center-text text-style">Динамика прибыли</p>
@@ -17,27 +17,27 @@
         </el-row>
       </div>
 
-      <div class="common" v-if="pieChart">
-        <div class="pie" v-if="pieChart.dealsStatuses && dealStatuses">
+      <div v-if="pieChart" class="common">
+        <div v-if="pieChart.dealsStatuses && dealStatuses" class="pie">
           <p class="center-text text-style">Разбиение сделок по статусам</p>
           <p class="text-style sum-text">
             Количество сделок - {{ countSum(pieChart.dealsStatuses) }}
           </p>
           <pie-chart :chart-data="transformToPieChart(getPieChartsLabel(pieChart.dealsStatuses, dealStatuses, 'status'))" />
         </div>
-        <div class="pie" v-if="pieChart.productsReports">
+        <div v-if="pieChart.productsReports" class="pie">
           <p class="center-text text-style">Разбиение сделок по типу</p>
           <p class="text-style sum-text">Количество сделок - {{ countSum(pieChart.productsReports) }}</p>
           <pie-chart :chart-data="transformToPieChart(getPieChartsLabel(pieChart.productsReports, productsReports, 'type'))" />
         </div>
-        <div class="pie" v-if="pieChart.tendersReports">
+        <div v-if="pieChart.tendersReports" class="pie">
           <p class="center-text text-style">Разбиение тендеров по типу</p>
           <p class="text-style sum-text">
             Количество тендеров - {{ countSum(pieChart.tendersReports) }}
           </p>
           <pie-chart :chart-data="transformToPieChart(getPieChartsLabel(pieChart.tendersReports, tenderReports, 'type'))" />
         </div>
-        <div class="pie" v-if="pieChart.tendersStatuses && tenderStatuses">
+        <div v-if="pieChart.tendersStatuses && tenderStatuses" class="pie">
           <p class="center-text text-style">Разбиение тендеров по типу статусам</p>
           <p class="text-style sum-text">Количество тендеров - {{ countSum(pieChart.tendersStatuses) }}</p>
           <pie-chart :chart-data="transformToPieChart(getPieChartsLabel(pieChart.tendersStatuses, tenderStatuses, 'status'))" />
@@ -50,8 +50,6 @@
 <script>
 import StarRating from 'vue-star-rating'
 import VueElementLoading from 'vue-element-loading'
-import { mapGetters, mapActions } from 'vuex'
-import moment from 'moment'
 
 import ExcelExport from '@/components/ExcelExport'
 import AsyncSelect from '@/components/AsyncSelect'

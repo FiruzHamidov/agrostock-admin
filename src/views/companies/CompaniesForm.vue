@@ -184,7 +184,7 @@
           <el-row style="margin-bottom: 22px">
             <el-col>
               <h2>Баланс</h2>
-              <p>{{balance}}</p>
+              <p>{{ balance }}</p>
             </el-col>
           </el-row>
 
