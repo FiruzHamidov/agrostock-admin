@@ -39,9 +39,13 @@
 
       <el-row>
         <el-col :span="12" class="border descr">
-          <el-carousel :interval="5000" arrow="always">
-            <el-carousel-item v-for="item in 4" :key="item + Math.random()">
-              <h3>{{ item }}</h3>
+          <el-carousel v-if="form.tender" :interval="5000" arrow="always">
+            <el-carousel-item v-for="item in form.tender.photos" :key="item.id">
+              <img
+                v-if="item.path"
+                :src="item.path"
+              />
+              <!-- <h3>{{ item }}</h3> -->
             </el-carousel-item>
           </el-carousel>
 
@@ -378,6 +382,8 @@ export default {
     async fetchData() {
       const arbitrationsService = this.$apiClient.service('deals')
       const res = await arbitrationsService.get(this.$route.params.id)
+
+      console.log(res)
 
       this.form = res
       this.changeActiveStep(res.stageStatus)
