@@ -21,9 +21,23 @@
 
     <template v-if="isEdit && form.id">
       <div class="categories-table">
-        <Table :category-id="form.id" :languages="languages" @on-select="id => firstCategoryId = id" />
-        <Table v-if="firstCategoryId" :category-id="firstCategoryId" :languages="languages" @on-select="id => secondCategoryId = id" />
-        <Table v-if="secondCategoryId" :category-id="secondCategoryId" :languages="languages" @on-select="id => thirdCategoryId = id" />
+        <Table
+          :category-id="form.id"
+          :languages="languages"
+          @on-select="id => (firstCategoryId = id)"
+        />
+        <Table
+          v-if="firstCategoryId"
+          :category-id="firstCategoryId"
+          :languages="languages"
+          @on-select="id => (secondCategoryId = id)"
+        />
+        <Table
+          v-if="secondCategoryId"
+          :category-id="secondCategoryId"
+          :languages="languages"
+          @on-select="id => (thirdCategoryId = id)"
+        />
       </div>
     </template>
   </div>
@@ -74,10 +88,10 @@ export default {
     },
   },
 
-  mounted() {
-    this.fetchLanguages()
+  async mounted() {
+    await this.init()
 
-    this.init()
+    await this.fetchLanguages()
   },
 
   methods: {
@@ -102,13 +116,15 @@ export default {
           name: '',
         }
       }
+
+      this.form = { ...this.form }
     },
 
     async fetchData() {
       const categoryService = this.$apiClient.service('categories')
       const res = await categoryService.get(this.$route.params.id, { query: { $getAllLang: true } })
 
-      this.form = {...this.form, ...res}
+      this.form = { ...this.form, ...res }
     },
 
     async onEdit() {
