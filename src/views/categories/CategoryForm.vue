@@ -10,7 +10,7 @@
         </el-col>
       </el-row>
 
-      <Upload :id="form.photoId" />
+      <Upload :id="form.photoId" @on-change="onUpload" />
 
       <el-form-item>
         <el-button v-if="isEdit" type="primary" @click="onEdit"> Изменить </el-button>
@@ -226,6 +226,10 @@ export default {
       this.categoryId = categoryId
       this.formCategoryId = formCategoryId
       this.isShowForm = true
+    },
+
+    onUpload(a, photoId) {
+      this.form.photoId = photoId
     },
   },
 }
