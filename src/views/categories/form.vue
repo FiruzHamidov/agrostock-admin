@@ -2,12 +2,17 @@
   <div class="app-container">
     <el-form ref="ruleForm" :rules="rules" :model="form" label-width="160px">
       <el-row>
-        <h3 style="padding-left: 60px;">Название</h3>
-        <el-col v-for="lang in languages" :key="lang.id" :span="8">
+        <!-- <h3 style="padding-left: 60px;">Название</h3> -->
+        <el-col :span="12">
+          <el-form-item :label="'Название'">
+            <el-input v-model="form.name" />
+          </el-form-item>
+        </el-col>
+        <!-- <el-col v-for="lang in languages" :key="lang.id" :span="8">
           <el-form-item :label="`${lang.name} - ${lang.code}`">
             <el-input v-if="form[lang.code]" v-model="form[lang.code].name" />
           </el-form-item>
-        </el-col>
+        </el-col> -->
       </el-row>
 
       <el-form-item>
@@ -55,6 +60,7 @@ export default {
       form: {
         name: '',
       },
+      isLoaded: false,
       show: false,
       isEdit: false,
       rules: {
@@ -64,8 +70,9 @@ export default {
   },
 
   watch: {
-    id() {
-      this.init()
+    async id() {
+      await this.init()
+      this.isLoaded = true
     },
   },
 
@@ -83,18 +90,20 @@ export default {
         this.form = { name: '' }
       }
 
-      for (const lang of this.languages) {
-        this.form[lang.code] = this.form[lang.code] || {}
-      }
+      // for (const lang of this.languages) {
+      //   this.form[lang.code] = this.form[lang.code] || {}
+      // }
+
+      this.form = { ...this.form }
     },
 
     async fetchData() {
       const categoryService = this.$apiClient.service('categories')
-      const res = await categoryService.get(this.id, { query: { $getAllLang: true } })
+      const res = await categoryService.get(this.id)
 
-      for (const lang of this.languages) {
-        res[lang.code] = res[lang.code] || {}
-      }
+      // for (const lang of this.languages) {
+      //   res[lang.code] = res[lang.code] || {}
+      // }
 
       this.form = res
     },
