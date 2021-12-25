@@ -15,22 +15,16 @@
               service="languages"
               label="name"
               placeholder="Выберите язык"
-              @value-changed="v => form.languageId = v"
+              @value-changed="v => (form.languageId = v)"
             />
           </el-form-item>
         </el-col>
       </el-row>
 
-      <Upload
-        :id="form.photoId"
-        @on-change="onPhotoChange"
-      />
+      <Upload :id="form.photoId" @on-change="onPhotoChange" />
 
       <el-form-item label="Текст">
-        <Markdown
-          :input="form.text"
-          @on-update="val => (form.text = val)"
-        />
+        <Markdown :input="form.text" @on-update="val => (form.text = val)" />
       </el-form-item>
 
       <el-form-item>
@@ -171,9 +165,8 @@ export default {
       this.$router.push({ name: 'News' })
     },
 
-    onPhotoChange(v) {
-      console.log(v)
-      this.form.photoId = v
+    onPhotoChange(oldId, newId) {
+      this.form.photoId = newId
     },
   },
 }
