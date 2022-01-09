@@ -180,7 +180,7 @@
               </el-upload>
             </el-col>
           </el-row>
-          
+
           <el-row style="margin-bottom: 22px">
             <el-col>
               <h2>Баланс</h2>
@@ -192,7 +192,13 @@
             <el-form-item>
               <el-button type="primary" @click="onEdit">Изменить</el-button>
               <el-button @click="onCancel">Отмена</el-button>
-              <el-button type="danger" @click="onBlock">Заблокировать</el-button>
+              <el-button
+                v-if="form.user && form.user.status !== 'blocked'"
+                type="danger"
+                @click="onBlock"
+              >
+                Заблокировать
+              </el-button>
             </el-form-item>
           </el-row>
         </el-form>
@@ -381,7 +387,7 @@ export default {
       this.$router.push({ name: 'Companies' })
     },
 
-    async onBlock(){
+    async onBlock() {
       try {
         await this.confirmUpdate('Заблокировать пользователя?', 'Отмена')
       } catch (err) {
@@ -391,7 +397,7 @@ export default {
       const blockUserService = this.$apiClient.service('block-user')
 
       try {
-        await blockUserService.create({userId: this.form.userId})
+        await blockUserService.create({ userId: this.form.userId })
       } catch (err) {
         this.$message({
           message: err.message,
