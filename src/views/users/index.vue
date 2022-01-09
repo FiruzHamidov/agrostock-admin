@@ -1,16 +1,12 @@
 <template>
   <div class="app-container">
-    <div class="top-menu el-col el-col-24 el-col-xs-24 el-col-sm-24 el-col-md-24 tp-text--right mb-4">
+    <div
+      class="top-menu el-col el-col-24 el-col-xs-24 el-col-sm-24 el-col-md-24 tp-text--right mb-4"
+    >
       <div class="filters">
         <div>
-          <el-input
-            v-model="searchField"
-            clearable
-            placeholder="E-mail">
-            <el-button 
-              slot="append"
-              icon="el-icon-search"
-              @click="fetchData()" />
+          <el-input v-model="searchField" clearable placeholder="E-mail">
+            <el-button slot="append" icon="el-icon-search" @click="fetchData()" />
           </el-input>
         </div>
       </div>
@@ -21,39 +17,29 @@
       element-loading-text="Loading"
       border
       fit
-      highlight-current-row>
-      <el-table-column 
-        align="center" 
-        label="ID" 
-        width="95">
+      highlight-current-row
+    >
+      <el-table-column align="center" label="ID" width="95">
         <template slot-scope="scope">
           {{ scope.$index }}
         </template>
       </el-table-column>
-      <el-table-column 
-        align="center" 
-        label="E-mail">
+      <el-table-column align="center" label="E-mail">
         <template slot-scope="scope">
           {{ scope.row.email }}
         </template>
       </el-table-column>
-      <el-table-column 
-        align="center" 
-        label="Роль"
-        width="200">
+      <el-table-column align="center" label="Роль" width="200">
         <template slot-scope="scope">
           {{ scope.row.type }}
         </template>
       </el-table-column>
-      <el-table-column
-        fixed="right"
-        label="Действия"
-        min-width="150">
+      <el-table-column fixed="right" label="Действия" min-width="150">
         <template slot-scope="scope">
           <div class="el-button-group">
-            <el-button 
-              size="small" 
-              @click="handleDelete(scope.row.id)"><i class="el-icon-delete"/></el-button>
+            <el-button size="small" @click="handleDelete(scope.row.id)"
+              ><i class="el-icon-delete"
+            /></el-button>
           </div>
         </template>
       </el-table-column>
@@ -66,7 +52,8 @@
       background
       layout="sizes, prev, pager, next, total"
       @size-change="handleSizeChange"
-      @current-change="fetchData"/>
+      @current-change="fetchData"
+    />
   </div>
 </template>
 
@@ -101,6 +88,7 @@ export default {
       const query = {
         $limit: this.limit,
         $skip: this.page - 1 ? (this.page - 1) * this.limit : 0,
+        status: { $ne: 'blocked' },
       }
       if (this.searchField !== '') {
         query.email = { $search: this.searchField }
@@ -136,17 +124,15 @@ export default {
         return false
       }
 
-      const usersService = this.$apiClient.service('users')
+      const blockUserService = this.$apiClient.service('block-user')
 
       try {
-        await usersService.remove(userId)
+        await blockUserService.create({ userId })
 
         this.$message({
           message: 'Аккаунт удалён',
           type: 'success',
         })
-
-        return await this.fetchData()
       } catch (err) {
         this.$message({
           message: 'Не удалось удалить аккаунт',
