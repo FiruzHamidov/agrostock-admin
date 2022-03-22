@@ -22,7 +22,7 @@
               :type="form.type === type.value ? 'success' : ''"
               round
               @click="form.type = type.value"
-            >{{ type.label }}</el-button
+              >{{ type.label }}</el-button
             >
           </el-form-item>
         </el-col>
@@ -243,6 +243,8 @@
         <el-form-item>
           <el-button type="primary" @click="onEdit"> Изменить </el-button>
           <el-button @click="onCancel">Отмена</el-button>
+          <el-button v-if="form.status === 'active'" @click="onBan">Заблокировать</el-button>
+          <el-button v-if="form.status === 'banned'" @click="onRestore">Разблокировать</el-button>
         </el-form-item>
       </el-row>
     </el-form>
@@ -270,10 +272,7 @@ export default {
   data() {
     return {
       form: {},
-      types: [
-        { value: 'buy', label: 'Покупаю' },
-        { value: 'sell', label: 'Продаю' },
-      ],
+      types: [{ value: 'buy', label: 'Покупаю' }, { value: 'sell', label: 'Продаю' }],
       statuses: [
         { label: 'Активен', value: 'active' },
         { label: 'Закрыт', value: 'closed' },
@@ -371,6 +370,64 @@ export default {
       })
 
       this.$router.push({ name: 'Products' })
+    },
+
+    async onBan() {
+      try {
+        await this.confirmUpdate('Точно хотите заблокировать товар?', 'Товар не заблокирован')
+      } catch (err) {
+        return false
+      }
+
+      const productsService = this.$apiClient.service('products')
+
+      try {
+        await productsService.patch(this.$route.params.id, {
+          status: 'banned',
+        })
+      } catch (err) {
+        this.$message({
+          message: err.message,
+          type: 'error',
+        })
+        return false
+      }
+
+      this.$message({
+        message: 'Товар заблокирован!',
+        type: 'success',
+      })
+
+      this.fetchData()
+    },
+
+    async onRestore() {
+      try {
+        await this.confirmUpdate('Точно хотите разблокировать товар?', 'Товар не разблокирован')
+      } catch (err) {
+        return false
+      }
+
+      const productsService = this.$apiClient.service('products')
+
+      try {
+        await productsService.patch(this.$route.params.id, {
+          status: 'active',
+        })
+      } catch (err) {
+        this.$message({
+          message: err.message,
+          type: 'error',
+        })
+        return false
+      }
+
+      this.$message({
+        message: 'Товар разблокирован!',
+        type: 'success',
+      })
+
+      this.fetchData()
     },
 
     async onCancel() {
