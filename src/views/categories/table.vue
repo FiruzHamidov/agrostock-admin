@@ -12,7 +12,13 @@
         <el-button @click="onFilterClick"> Применить </el-button>
       </div>
       <div class="add-button">
-        <el-button v-if="categoryId" type="success" icon="el-icon-plus" circle @click="onAddClick" />
+        <el-button
+          v-if="categoryId"
+          type="success"
+          icon="el-icon-plus"
+          circle
+          @click="onAddClick"
+        />
         <!-- <router-link :to="{ name: 'addSubCategory', params: { id: categoryId } }">
         </router-link> -->
       </div>
@@ -25,7 +31,6 @@
       border
       fit
       highlight-current-row
-      @row-click="onRowClick"
     >
       <el-table-column align="center" label="ID" width="95">
         <template slot-scope="scope">
@@ -46,31 +51,50 @@
               class="el-button el-button--default el-button--small"
               ><i class="el-icon-edit"
             /></router-link> -->
-            <el-button size="small" @click="onEditClick(scope.row.id)">
-              <i class="el-icon-edit"
-              />
+            <el-button size="small" @click="onRowClick(scope.row)">
+              <i class="el-icon-view" />
             </el-button>
-            <el-button size="small" @click="onDeleteClick(scope.row.id)"
-            ><i class="el-icon-delete"
-            /></el-button>
+            <el-button size="small" @click="onEditClick(scope.row.id)">
+              <i class="el-icon-edit" />
+            </el-button>
+            <el-button size="small" @click="onDeleteClick(scope.row.id)">
+              <i class="el-icon-delete" />
+            </el-button>
           </div>
         </template>
       </el-table-column>
     </el-table>
 
-    <el-dialog :title="`${formCategoryId ? 'Добавление подкатегории для ' : 'Редактирование подкатегории для '} ${category.name}`" :visible.sync="isShowForm">
-      <Form :id="formCategoryId" :category-id="categoryId" :languages="languages" @on-edit="onFormUpdate" @on-add="onFormUpdate" @on-cancel="onFormUpdate" />
+    <el-dialog
+      :title="
+        `${formCategoryId ? 'Добавление подкатегории для ' : 'Редактирование подкатегории для '} ${
+          category.name
+        }`
+      "
+      :visible.sync="isShowForm"
+    >
+      <Form
+        :id="formCategoryId"
+        :category-id="categoryId"
+        :languages="languages"
+        @on-edit="onFormUpdate"
+        @on-add="onFormUpdate"
+        @on-cancel="onFormUpdate"
+      />
     </el-dialog>
   </div>
 </template>
 
 <script>
 import Form from './form'
+import confirmUpdate from '@/mixins/confirmUpdate'
 
 export default {
   name: 'Categories',
 
   components: { Form },
+
+  mixins: [confirmUpdate],
 
   props: {
     categoryId: {
@@ -166,9 +190,11 @@ export default {
     },
 
     async onDeleteClick(id) {
+      console.log({ id })
       try {
         await this.confirmUpdate('Точно удалить категорию?', 'Категория не удалена')
       } catch (err) {
+        console.log(err)
         return false
       }
 
