@@ -124,7 +124,7 @@ export default {
       const categoryService = this.$apiClient.service('categories')
 
       try {
-        await categoryService.patch(this.$route.params.id, {
+        await categoryService.patch(this.id, {
           ...this.form,
         })
       } catch (err) {
