@@ -3,11 +3,14 @@
     <el-form ref="ruleForm" :rules="rules" :model="form" label-width="160px">
       <el-row>
         <h3 style="padding-left: 60px;">Название</h3>
-        <el-col v-for="lang in languages" :key="lang.id" :span="8">
+        <el-form-item>
+          <el-input v-model="form.name" />
+        </el-form-item>
+        <!-- <el-col v-for="lang in languages" :key="lang.id" :span="8">
           <el-form-item :label="`${lang.name} - ${lang.code}`">
             <el-input v-if="form[lang.code]" v-model="form[lang.code].name" />
           </el-form-item>
-        </el-col>
+        </el-col> -->
       </el-row>
 
       <Upload :id="form.photoId" @on-change="onUpload" />
@@ -105,24 +108,23 @@ export default {
     },
 
     async fetchLanguages() {
-      this.languages = await this.$apiClient.service('languages').find({
-        query: {
-          $limit: -1,
-        },
-      })
-      for (const lang of this.languages) {
-        this.form[lang.code] = this.form[lang.code] || {
-          languageId: lang.id,
-          name: '',
-        }
-      }
-
-      this.form = { ...this.form }
+      // this.languages = await this.$apiClient.service('languages').find({
+      //   query: {
+      //     $limit: -1,
+      //   },
+      // })
+      // for (const lang of this.languages) {
+      //   this.form[lang.code] = this.form[lang.code] || {
+      //     languageId: lang.id,
+      //     name: '',
+      //   }
+      // }
+      // this.form = { ...this.form }
     },
 
     async fetchData() {
       const categoryService = this.$apiClient.service('categories')
-      const res = await categoryService.get(this.$route.params.id, { query: { $getAllLang: true } })
+      const res = await categoryService.get(this.$route.params.id)
 
       this.form = { ...this.form, ...res }
     },
