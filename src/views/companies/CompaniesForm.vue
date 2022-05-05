@@ -171,7 +171,7 @@
                 :on-remove="handleRemove"
                 :file-list="form.documents"
                 :headers="headerInfo"
-                action="https://api.agrostock.pro/uploads"
+                action="https://api.agrostock.online/uploads"
                 class="document"
                 multiple
                 list-type="picture"

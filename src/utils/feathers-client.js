@@ -3,11 +3,11 @@ import socketio from '@feathersjs/socketio-client'
 import io from 'socket.io-client'
 import auth from '@feathersjs/authentication-client'
 
-export const host = process.env.BASE_API || 'http://localhost:3030'
+export const host = process.env.BASE_API || 'https://api.agrostock.online'
 
 const socket = io(host, {
   transports: ['polling'],
-  path: process.env.SOCKET_PATH || '/socket.io'
+  path: process.env.SOCKET_PATH || '/socket.io',
 })
 
 const feathersClient = feathers()
