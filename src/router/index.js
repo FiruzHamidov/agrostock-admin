@@ -414,6 +414,28 @@ export const constantRouterMap = [
         component: () => import('@/views/users/index'),
         meta: { title: 'Пользователи', icon: 'users' },
       },
+      {
+        path: 'add',
+        name: 'addUser',
+        hidden: true,
+        component: () => import('@/views/users/UsersForm'),
+        meta: {
+          title: 'Добавление пользователя',
+          icon: 'users',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: 'edit/:id',
+        name: 'editUser',
+        hidden: true,
+        component: () => import('@/views/users/UsersForm'),
+        meta: {
+          title: 'Редактирование пользователя',
+          icon: 'users',
+          roles: ['admin'],
+        },
+      },
     ],
     meta: {
       availableRoles: ['admin'],

@@ -4,13 +4,24 @@
       class="top-menu el-col el-col-24 el-col-xs-24 el-col-sm-24 el-col-md-24 tp-text--right mb-4"
     >
       <div class="filters">
-        <div>
-          <el-input v-model="searchField" clearable placeholder="E-mail">
-            <el-button slot="append" icon="el-icon-search" @click="fetchData()" />
-          </el-input>
-        </div>
+        <el-input v-model="filters.email" clearable placeholder="E-mail" />
+        <el-input v-model="filters.username" clearable placeholder="Username" />
+        <el-input v-model="filters.fullName" clearable placeholder="ФИО" />
+        <el-select v-model="filters.type" clearable placeholder="Роль">
+          <el-option v-for="item in typeOptions" :key="item" :label="item" :value="item" />
+        </el-select>
+        <el-select v-model="filters.status" clearable placeholder="Статус">
+          <el-option v-for="item in statusOptions" :key="item" :label="item" :value="item" />
+        </el-select>
+        <el-button @click="onFilterClick">Применить</el-button>
+      </div>
+      <div class="add-button">
+        <router-link :to="{ name: 'addUser' }">
+          <el-button type="success" icon="el-icon-plus" circle />
+        </router-link>
       </div>
     </div>
+
     <el-table
       v-loading="isLoading"
       :data="users"
@@ -21,7 +32,7 @@
     >
       <el-table-column align="center" label="ID" width="95">
         <template slot-scope="scope">
-          {{ scope.$index }}
+          {{ scope.row.id }}
         </template>
       </el-table-column>
       <el-table-column align="center" label="E-mail">
@@ -29,21 +40,49 @@
           {{ scope.row.email }}
         </template>
       </el-table-column>
-      <el-table-column align="center" label="Роль" width="200">
+      <el-table-column align="center" label="Username">
+        <template slot-scope="scope">
+          {{ scope.row.username }}
+        </template>
+      </el-table-column>
+      <el-table-column align="center" label="ФИО" min-width="170">
+        <template slot-scope="scope">
+          {{ scope.row.fullName }}
+        </template>
+      </el-table-column>
+      <el-table-column align="center" label="Роль" width="120">
         <template slot-scope="scope">
           {{ scope.row.type }}
         </template>
       </el-table-column>
-      <el-table-column fixed="right" label="Действия" min-width="150">
+      <el-table-column align="center" label="Статус" width="120">
+        <template slot-scope="scope">
+          {{ scope.row.status }}
+        </template>
+      </el-table-column>
+      <el-table-column align="center" label="Онлайн" width="100">
+        <template slot-scope="scope">
+          {{ scope.row.isOnline ? 'Да' : 'Нет' }}
+        </template>
+      </el-table-column>
+      <el-table-column fixed="right" label="Действия" min-width="160">
         <template slot-scope="scope">
           <div class="el-button-group">
-            <el-button size="small" @click="handleDelete(scope.row.id)"
-              ><i class="el-icon-delete"
-            /></el-button>
+            <router-link
+              :to="{ name: 'editUser', params: { id: scope.row.id } }"
+              tag="button"
+              class="el-button el-button--default el-button--small"
+            >
+              <i class="el-icon-edit" />
+            </router-link>
+            <el-button size="small" @click="handleDelete(scope.row.id)">
+              <i class="el-icon-delete" />
+            </el-button>
           </div>
         </template>
       </el-table-column>
     </el-table>
+
     <el-pagination
       :current-page.sync="page"
       :page-size="limit"
@@ -68,7 +107,15 @@ export default {
   data() {
     return {
       users: [],
-      searchField: '',
+      filters: {
+        email: '',
+        username: '',
+        fullName: '',
+        type: '',
+        status: '',
+      },
+      typeOptions: ['company', 'admin', 'moderator', 'superadmin'],
+      statusOptions: ['active', 'blocked'],
       isLoading: true,
       total: 1,
       limit: 10,
@@ -87,17 +134,26 @@ export default {
 
       const query = {
         $limit: this.limit,
-        $skip: this.page - 1 ? (this.page - 1) * this.limit : 0,
-        status: { $ne: 'blocked' },
-      }
-      if (this.searchField !== '') {
-        query.email = { $search: this.searchField }
+        $skip: this.page > 1 ? (this.page - 1) * this.limit : 0,
+        $sort: {
+          createdAt: -1,
+        },
       }
 
-      const response = await usersService.find({
-        query,
+      Object.keys(this.filters).forEach(key => {
+        if (!this.filters[key]) {
+          return
+        }
+
+        if (key === 'email' || key === 'username' || key === 'fullName') {
+          query[key] = { $search: this.filters[key] }
+          return
+        }
+
+        query[key] = this.filters[key]
       })
 
+      const response = await usersService.find({ query })
       const { data, total } = response
 
       if (data.length === 0 && this.page > 1) {
@@ -107,7 +163,6 @@ export default {
 
       this.users = data
       this.total = total
-
       this.isLoading = false
       return true
     },
@@ -119,35 +174,41 @@ export default {
 
     async handleDelete(userId) {
       try {
-        await this.confirmUpdate('Точно удалить этот аккаунт?', 'Аккаунт удалён')
+        await this.confirmUpdate('Точно удалить пользователя?', 'Пользователь не удален')
       } catch (err) {
         return false
       }
 
-      const blockUserService = this.$apiClient.service('block-user')
-
       try {
-        await blockUserService.create({ userId })
+        await this.$apiClient.service('users').remove(userId)
 
         this.$message({
-          message: 'Аккаунт удалён',
+          message: 'Пользователь удален',
           type: 'success',
         })
       } catch (err) {
+        const code = err.code || (err.data && err.data.code)
+        let message = err.message || 'Не удалось удалить пользователя'
+
+        if (code === 401) {
+          message = 'Сессия истекла. Войдите снова'
+        } else if (code === 403) {
+          message = 'Недостаточно прав для удаления пользователя'
+        }
+
         this.$message({
-          message: 'Не удалось удалить аккаунт',
-          type: 'warning',
+          message,
+          type: 'error',
         })
       }
+
+      return await this.fetchData()
+    },
+
+    onFilterClick() {
+      this.page = 1
+      this.fetchData()
     },
   },
 }
 </script>
-
-<style lang="scss" scoped>
-.vue-star-rating {
-  display: flex !important;
-  width: 100%;
-  justify-content: center;
-}
-</style>
