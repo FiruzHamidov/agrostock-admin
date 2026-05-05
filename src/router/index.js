@@ -252,6 +252,48 @@ export const constantRouterMap = [
   },
 
   {
+    path: '/trucks',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'Trucks',
+        component: () => import('@/views/trucks/index'),
+        meta: {
+          title: 'Грузовики',
+          icon: 'products',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: 'add',
+        name: 'addTruck',
+        hidden: true,
+        component: () => import('@/views/trucks/TrucksForm'),
+        meta: {
+          title: 'Добавление грузовика',
+          icon: 'products',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: 'edit/:id',
+        name: 'editTruck',
+        hidden: true,
+        component: () => import('@/views/trucks/TrucksForm'),
+        meta: {
+          title: 'Грузовик',
+          icon: 'products',
+          roles: ['admin'],
+        },
+      },
+    ],
+    meta: {
+      availableRoles: ['admin'],
+    },
+  },
+
+  {
     path: '/companies',
     component: Layout,
     children: [
@@ -312,6 +354,26 @@ export const constantRouterMap = [
         component: () => import('@/views/products-reports/index'),
         meta: {
           title: 'Жалобы на товар',
+          icon: 'complaint',
+          roles: ['admin'],
+        },
+      },
+    ],
+    meta: {
+      availableRoles: ['admin'],
+    },
+  },
+
+  {
+    path: '/truck-moderation',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'TruckModeration',
+        component: () => import('@/views/truck-moderation/index'),
+        meta: {
+          title: 'Модерация грузовиков',
           icon: 'complaint',
           roles: ['admin'],
         },
