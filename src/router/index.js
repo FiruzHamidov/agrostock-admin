@@ -458,6 +458,8 @@ export const constantRouterMap = [
       },
     ],
     meta: {
+      title: 'Чаты',
+      icon: 'chat',
       availableRoles: ['admin', 'moderator', 'superadmin'],
     },
   },

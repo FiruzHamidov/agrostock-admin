@@ -22,8 +22,8 @@
  */
 
 const services = {
-  adminChats: 'admin/chats',
-  adminChatsBulkDelete: 'admin/chats/bulk-delete',
+  adminChats: 'chats',
+  adminChatsBulkDelete: 'chats/bulk-delete',
   chats: 'chats',
   chatMessages: 'chats-messages',
   commonMessages: 'common-chat-messages',
@@ -56,7 +56,20 @@ export const chatModerationApi = {
   },
 
   bulkDeleteAdminChats(client, ids) {
-    return client.service(services.adminChatsBulkDelete).create({ ids })
+    // Not all backends expose bulk endpoint for chats, so fallback to per-id remove.
+    return client
+      .service(services.adminChatsBulkDelete)
+      .create({ ids })
+      .catch(async error => {
+        if (
+          Number(error && error.code) === 404 ||
+          (error && String(error.message || '').includes('Service') && String(error.message || '').includes('not found'))
+        ) {
+          await Promise.all(ids.map(id => client.service(services.adminChats).remove(id)))
+          return { removed: ids.length }
+        }
+        throw error
+      })
   },
 
   findChats(client, query) {

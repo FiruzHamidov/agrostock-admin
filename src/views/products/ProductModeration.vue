@@ -10,32 +10,12 @@
         </el-select>
         <el-input v-model.number="filters.productId" clearable type="number" placeholder="productId" class="w-140" />
         <el-input v-model.number="filters.companyId" clearable type="number" placeholder="companyId" class="w-140" />
-        <el-input
-          v-model.number="filters.moderatorUserId"
-          clearable
-          type="number"
-          placeholder="moderatorUserId"
-          class="w-160"
-        />
-        <el-date-picker
-          v-model="dateRange"
-          type="daterange"
-          range-separator="-"
-          start-placeholder="dateFrom"
-          end-placeholder="dateTo"
-          value-format="yyyy-MM-dd"
-        />
-        <el-select v-model="sortField" placeholder="Сортировка" class="w-160">
-          <el-option label="createdAt" value="createdAt" />
-          <el-option label="updatedAt" value="updatedAt" />
-        </el-select>
-        <el-select v-model="sortOrder" placeholder="Порядок" class="w-120">
-          <el-option :value="-1" label="DESC" />
-          <el-option :value="1" label="ASC" />
-        </el-select>
         <el-button @click="onFilterClick">Применить</el-button>
       </div>
     </div>
+    <el-alert v-if="notAuthenticated" :closable="false" type="error" title="401: требуется авторизация" show-icon />
+    <el-alert v-else-if="forbidden" :closable="false" type="error" title="403: доступ запрещен" show-icon />
+    <el-alert v-else-if="notFound" :closable="false" type="error" title="404: сервис не найден" show-icon />
 
     <el-table
       v-loading="isLoading"
@@ -115,15 +95,14 @@ export default {
   data() {
     return {
       moderationList: [],
+      notAuthenticated: false,
+      forbidden: false,
+      notFound: false,
       filters: {
         status: 'pending',
         productId: null,
         companyId: null,
-        moderatorUserId: null,
       },
-      dateRange: [],
-      sortField: 'createdAt',
-      sortOrder: -1,
       isLoading: true,
       total: 1,
       limit: 10,
@@ -138,13 +117,17 @@ export default {
   methods: {
     async fetchData() {
       this.isLoading = true
+      this.notAuthenticated = false
+      this.forbidden = false
+      this.notFound = false
 
       const query = {
         $limit: this.limit,
         $skip: this.page - 1 ? (this.page - 1) * this.limit : 0,
-        $sort: {},
+        $sort: {
+          createdAt: -1,
+        },
       }
-      query.$sort[this.sortField] = Number(this.sortOrder)
 
       Object.keys(this.filters).forEach(key => {
         if (this.filters[key] !== '' && this.filters[key] !== null && this.filters[key] !== undefined) {
@@ -152,15 +135,13 @@ export default {
         }
       })
 
-      if (this.dateRange && this.dateRange.length === 2) {
-        query.dateFrom = this.dateRange[0]
-        query.dateTo = this.dateRange[1]
-      }
-
       let response
       try {
         response = await this.$apiClient.service('product-moderation').find({ query })
       } catch (err) {
+        this.notAuthenticated = Number(err && err.code) === 401
+        this.forbidden = Number(err && err.code) === 403
+        this.notFound = Number(err && err.code) === 404
         handleApiError(this, err, 'Не удалось получить список модерации товаров')
         this.isLoading = false
         return false

@@ -23,7 +23,9 @@
       </el-button>
     </div>
 
-    <el-alert v-if="forbidden" :closable="false" type="error" title="403: доступ запрещен" show-icon />
+    <el-alert v-if="notAuthenticated" :closable="false" type="error" title="401: требуется авторизация" show-icon />
+    <el-alert v-else-if="forbidden" :closable="false" type="error" title="403: доступ запрещен" show-icon />
+    <el-alert v-else-if="notFound" :closable="false" type="error" title="404: сервис не найден" show-icon />
     <el-alert v-else-if="loadError" :closable="false" :title="loadError" type="error" show-icon />
 
     <el-table
@@ -86,7 +88,9 @@ export default {
     return {
       loading: false,
       loadError: '',
+      notAuthenticated: false,
       forbidden: false,
+      notFound: false,
       items: [],
       total: 0,
       pagination: {
@@ -141,7 +145,9 @@ export default {
     async fetchChats() {
       this.loading = true
       this.loadError = ''
+      this.notAuthenticated = false
       this.forbidden = false
+      this.notFound = false
       try {
         const res = await chatModerationApi.findAdminChats(this.$apiClient, this.buildQuery())
         const raw = res.data || []
@@ -152,8 +158,14 @@ export default {
         this.items = mapped
         this.total = res.total || mapped.length
       } catch (error) {
+        if (error && Number(error.code) === 401) {
+          this.notAuthenticated = true
+        }
         if (error && Number(error.code) === 403) {
           this.forbidden = true
+        }
+        if (error && Number(error.code) === 404) {
+          this.notFound = true
         }
         const parsed = handleApiError(this, error, 'Не удалось загрузить чаты')
         this.loadError = parsed.message

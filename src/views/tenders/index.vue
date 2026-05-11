@@ -28,6 +28,9 @@
       </div>
       <div class="add-button" />
     </div>
+    <el-alert v-if="notAuthenticated" :closable="false" type="error" title="401: требуется авторизация" show-icon />
+    <el-alert v-else-if="forbidden" :closable="false" type="error" title="403: доступ запрещен" show-icon />
+    <el-alert v-else-if="notFound" :closable="false" type="error" title="404: сервис не найден" show-icon />
     <el-table
       v-loading="isLoading"
       :data="tenders"
@@ -99,6 +102,7 @@
 <script>
 import confirmUpdate from '@/mixins/confirmUpdate'
 import moment from 'moment'
+import { handleApiError } from '@/utils/api-error'
 
 import { currencySymbols } from '@/utils/variables'
 
@@ -127,6 +131,9 @@ export default {
     return {
       tenders: [],
       filters: {},
+      notAuthenticated: false,
+      forbidden: false,
+      notFound: false,
       isLoading: true,
       total: 1,
       limit: 10,
@@ -159,6 +166,9 @@ export default {
     async fetchData() {
       const tendersService = this.$apiClient.service('tenders')
       this.isLoading = true
+      this.notAuthenticated = false
+      this.forbidden = false
+      this.notFound = false
 
       const query = {
         $limit: this.limit,
@@ -182,9 +192,19 @@ export default {
           query[key] = this.filters[key]
         }
       })
-      const response = await tendersService.find({
-        query,
-      })
+      let response
+      try {
+        response = await tendersService.find({
+          query,
+        })
+      } catch (err) {
+        this.notAuthenticated = Number(err && err.code) === 401
+        this.forbidden = Number(err && err.code) === 403
+        this.notFound = Number(err && err.code) === 404
+        handleApiError(this, err, 'Не удалось получить список торгов')
+        this.isLoading = false
+        return false
+      }
 
       const { data, total } = response
 
@@ -214,9 +234,14 @@ export default {
         return false
       }
 
-      await this.$apiClient.service('tenders').remove(id)
+      try {
+        await this.$apiClient.service('tenders').remove(id)
+      } catch (err) {
+        handleApiError(this, err, 'Не удалось удалить торги')
+        return false
+      }
       this.$message({
-        message: 'Категория удалена!',
+        message: 'Торги удалены!',
         type: 'success',
       })
 

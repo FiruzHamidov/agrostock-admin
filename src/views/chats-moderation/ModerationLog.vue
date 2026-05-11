@@ -11,11 +11,14 @@
         <el-option label="common-chat-messages" value="common-chat-messages" />
         <el-option label="chats-messages" value="chats-messages" />
       </el-select>
+      <el-input v-model.number="filters.entityId" clearable type="number" placeholder="entityId" class="w-140" />
       <el-input v-model.number="filters.companyId" clearable type="number" placeholder="companyId" class="w-140" />
       <el-input v-model.number="filters.userId" clearable type="number" placeholder="userId" class="w-140" />
       <el-button type="primary" @click="onApplyFilters">Применить</el-button>
     </div>
-    <el-alert v-if="forbidden" :closable="false" type="error" title="403: доступ запрещен" show-icon />
+    <el-alert v-if="notAuthenticated" :closable="false" type="error" title="401: требуется авторизация" show-icon />
+    <el-alert v-else-if="forbidden" :closable="false" type="error" title="403: доступ запрещен" show-icon />
+    <el-alert v-else-if="notFound" :closable="false" type="error" title="404: сервис не найден" show-icon />
     <el-alert v-else-if="loadError" :closable="false" :title="loadError" type="error" show-icon />
 
     <el-table v-loading="loading" :data="items" stripe empty-text="Нет записей">
@@ -68,7 +71,9 @@ export default {
   data() {
     return {
       loading: false,
+      notAuthenticated: false,
       forbidden: false,
+      notFound: false,
       loadError: '',
       items: [],
       total: 0,
@@ -76,6 +81,7 @@ export default {
       filters: {
         status: 'blocked',
         entityType: '',
+        entityId: null,
         companyId: null,
         userId: null,
       },
@@ -114,15 +120,23 @@ export default {
 
     async fetchData() {
       this.loading = true
+      this.notAuthenticated = false
       this.forbidden = false
+      this.notFound = false
       this.loadError = ''
       try {
         const res = await chatModerationApi.findModerationLog(this.$apiClient, this.buildQuery())
         this.items = res.data || []
         this.total = res.total || 0
       } catch (error) {
+        if (error && Number(error.code) === 401) {
+          this.notAuthenticated = true
+        }
         if (error && Number(error.code) === 403) {
           this.forbidden = true
+        }
+        if (error && Number(error.code) === 404) {
+          this.notFound = true
         }
         const parsed = handleApiError(this, error, 'Не удалось загрузить лог модерации')
         this.loadError = parsed.message

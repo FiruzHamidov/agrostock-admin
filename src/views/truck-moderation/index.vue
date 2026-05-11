@@ -15,6 +15,9 @@
       </div>
       <div class="add-button" />
     </div>
+    <el-alert v-if="notAuthenticated" :closable="false" type="error" title="401: требуется авторизация" show-icon />
+    <el-alert v-else-if="forbidden" :closable="false" type="error" title="403: доступ запрещен" show-icon />
+    <el-alert v-else-if="notFound" :closable="false" type="error" title="404: сервис не найден" show-icon />
 
     <el-table
       v-loading="isLoading"
@@ -97,6 +100,7 @@
 
 <script>
 import confirmUpdate from '@/mixins/confirmUpdate'
+import { handleApiError } from '@/utils/api-error'
 
 export default {
   name: 'TruckModeration',
@@ -106,6 +110,9 @@ export default {
   data() {
     return {
       truckModerations: [],
+      notAuthenticated: false,
+      forbidden: false,
+      notFound: false,
       filters: {
         status: 'pending',
         truckId: null,
@@ -126,12 +133,12 @@ export default {
       const moderationService = this.$apiClient.service('truck-moderation')
 
       this.isLoading = true
+      this.notAuthenticated = false
+      this.forbidden = false
+      this.notFound = false
       const query = {
         $limit: this.limit,
         $skip: this.page - 1 ? (this.page - 1) * this.limit : 0,
-        $sort: {
-          createdAt: -1,
-        },
       }
 
       Object.keys(this.filters).forEach(key => {
@@ -140,7 +147,17 @@ export default {
         }
       })
 
-      const response = await moderationService.find({ query })
+      let response
+      try {
+        response = await moderationService.find({ query })
+      } catch (err) {
+        this.notAuthenticated = Number(err && err.code) === 401
+        this.forbidden = Number(err && err.code) === 403
+        this.notFound = Number(err && err.code) === 404
+        handleApiError(this, err, 'Не удалось получить список модерации грузовиков')
+        this.isLoading = false
+        return false
+      }
       const { data, total } = response
 
       if (data.length === 0 && this.page > 1) {
@@ -195,10 +212,15 @@ export default {
         return false
       }
 
-      await this.$apiClient.service('truck-moderation').patch(row.id, {
-        status,
-        comment,
-      })
+      try {
+        await this.$apiClient.service('truck-moderation').patch(row.id, {
+          status,
+          comment,
+        })
+      } catch (err) {
+        handleApiError(this, err, 'Не удалось обновить статус модерации')
+        return false
+      }
 
       this.$message({
         message: 'Статус модерации обновлен!',
@@ -215,7 +237,12 @@ export default {
         return false
       }
 
-      await this.$apiClient.service('truck-moderation').remove(id)
+      try {
+        await this.$apiClient.service('truck-moderation').remove(id)
+      } catch (err) {
+        handleApiError(this, err, 'Не удалось удалить запись модерации')
+        return false
+      }
       this.$message({
         message: 'Запись модерации удалена!',
         type: 'success',
