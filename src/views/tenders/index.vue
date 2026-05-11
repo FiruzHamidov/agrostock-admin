@@ -22,8 +22,8 @@
         />
         <el-input v-model.number="filters.countryId" clearable type="number" placeholder="countryId" class="w-140" />
         <el-input v-model.number="filters.cityId" clearable type="number" placeholder="cityId" class="w-120" />
-        <el-switch v-model="filters.$getMine" active-text="$getMine" />
-        <el-switch v-model="filters.$getParticipants" active-text="$getParticipants" />
+        <el-switch v-model="filters.$getMine" active-text="Мои торги" />
+        <el-switch v-model="filters.$getParticipants" active-text="С участниками" />
         <el-button @click="onFilterClick"> Применить </el-button>
       </div>
       <div class="add-button" />

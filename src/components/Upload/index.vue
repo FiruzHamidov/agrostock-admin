@@ -19,7 +19,7 @@
       />
     </div>
     <el-button v-if="upload.path || imageUrl !== ''" type="danger" @click="deleteLogo">
-      Удалить лого
+      Удалить
     </el-button>
   </el-form-item>
 </template>
