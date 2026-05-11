@@ -2,8 +2,8 @@
   <div class="app-container">
     <h2>Детали чата #{{ chatId }}</h2>
 
-    <el-alert v-if="forbidden" type="error" title="403: доступ запрещен" :closable="false" show-icon />
-    <el-alert v-else-if="loadError" :title="loadError" type="error" :closable="false" show-icon />
+    <el-alert v-if="forbidden" :closable="false" type="error" title="403: доступ запрещен" show-icon />
+    <el-alert v-else-if="loadError" :closable="false" :title="loadError" type="error" show-icon />
 
     <el-card v-if="chat" class="mb-3">
       <div slot="header">Участники</div>

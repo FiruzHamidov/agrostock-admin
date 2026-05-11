@@ -101,7 +101,6 @@ export default {
     async handleLogin() {
       const isValid = await this.$refs.loginForm.validate()
 
-      console.log(isValid)
       if (isValid) {
         this.loading = true
         try {
@@ -112,13 +111,11 @@ export default {
             email: username.trim(),
             password: password,
           })
-          console.log(accessToken)
           await this.$store.dispatch('user/setToken', accessToken)
 
           this.loading = false
           this.$router.push({ path: this.redirect || '/' })
         } catch (e) {
-          console.log(e)
           this.loading = false
         }
       } else {

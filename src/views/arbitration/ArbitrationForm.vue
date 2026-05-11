@@ -383,8 +383,6 @@ export default {
       const arbitrationsService = this.$apiClient.service('deals')
       const res = await arbitrationsService.get(this.$route.params.id)
 
-      console.log(res)
-
       this.form = res
       this.changeActiveStep(res.stageStatus)
 
@@ -549,7 +547,7 @@ export default {
         this.sendMessage.fileId = data[0].id
         this.sendMessage.file = data[0]
       } catch (e) {
-        console.log(e.message)
+        // silent upload error to keep old behavior
       }
     },
 

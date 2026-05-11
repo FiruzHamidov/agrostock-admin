@@ -121,7 +121,6 @@ export default {
     },
 
     async onAdd() {
-      console.log(this.form)
       try {
         await this.validateForm('ruleForm')
       } catch (err) {

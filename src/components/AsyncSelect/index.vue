@@ -98,7 +98,6 @@ export default {
     },
 
     addressChanged(address) {
-      console.log(address)
       this.address = address
       this.$emit('value-changed', this.address)
     },

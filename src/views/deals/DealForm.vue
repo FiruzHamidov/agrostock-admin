@@ -548,7 +548,7 @@ export default {
         this.sendMessage.fileId = data[0].id
         this.sendMessage.file = data[0]
       } catch (e) {
-        console.log(e.message)
+        // silent upload error to keep old behavior
       }
     },
 

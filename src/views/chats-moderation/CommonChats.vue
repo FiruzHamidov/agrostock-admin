@@ -13,8 +13,8 @@
       <el-input v-if="activeTab === 'category'" v-model="filters.categoryId" clearable placeholder="categoryId" />
       <el-button type="primary" @click="applyFilters">Применить</el-button>
     </div>
-    <el-alert v-if="forbidden" type="error" title="403: доступ запрещен" :closable="false" show-icon />
-    <el-alert v-else-if="loadError" :title="loadError" type="error" :closable="false" show-icon />
+    <el-alert v-if="forbidden" :closable="false" type="error" title="403: доступ запрещен" show-icon />
+    <el-alert v-else-if="loadError" :closable="false" :title="loadError" type="error" show-icon />
 
     <el-table v-loading="loading" :data="messages" stripe empty-text="Нет сообщений">
       <el-table-column prop="id" label="id" width="90" />

@@ -321,8 +321,6 @@ export default {
       const res = await companiesService.get(this.$route.params.id)
       const balance = await companiesBalancesServices.get(this.$route.params.id)
 
-      console.log(res)
-
       this.form = res
       this.form.documents.forEach(item => {
         item.name = item.originalname

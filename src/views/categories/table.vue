@@ -150,8 +150,6 @@ export default {
           id: -1,
         },
       }
-      console.log(query)
-
       Object.keys(this.filters).forEach(key => {
         if (this.filters[key]) {
           query[key] = this.filters[key]
@@ -190,11 +188,9 @@ export default {
     },
 
     async onDeleteClick(id) {
-      console.log({ id })
       try {
         await this.confirmUpdate('Точно удалить категорию?', 'Категория не удалена')
       } catch (err) {
-        console.log(err)
         return false
       }
 

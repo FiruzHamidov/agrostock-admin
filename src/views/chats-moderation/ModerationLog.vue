@@ -1,8 +1,8 @@
 <template>
   <div class="app-container">
     <h2>Лог модерации</h2>
-    <el-alert v-if="forbidden" type="error" title="403: доступ запрещен" :closable="false" show-icon />
-    <el-alert v-else-if="loadError" :title="loadError" type="error" :closable="false" show-icon />
+    <el-alert v-if="forbidden" :closable="false" type="error" title="403: доступ запрещен" show-icon />
+    <el-alert v-else-if="loadError" :closable="false" :title="loadError" type="error" show-icon />
 
     <el-table v-loading="loading" :data="items" stripe empty-text="Нет записей">
       <el-table-column prop="entityType" label="entityType" min-width="180" />
