@@ -22,6 +22,8 @@
  */
 
 const services = {
+  adminChats: 'admin/chats',
+  adminChatsBulkDelete: 'admin/chats/bulk-delete',
   chats: 'chats',
   chatMessages: 'chats-messages',
   commonMessages: 'common-chat-messages',
@@ -41,6 +43,22 @@ function sanitizeQuery(query) {
 }
 
 export const chatModerationApi = {
+  findAdminChats(client, query) {
+    return client.service(services.adminChats).find({ query: sanitizeQuery(query) })
+  },
+
+  getAdminChat(client, id) {
+    return client.service(services.adminChats).get(id)
+  },
+
+  removeAdminChat(client, id) {
+    return client.service(services.adminChats).remove(id)
+  },
+
+  bulkDeleteAdminChats(client, ids) {
+    return client.service(services.adminChatsBulkDelete).create({ ids })
+  },
+
   findChats(client, query) {
     return client.service(services.chats).find({ query: sanitizeQuery(query) })
   },

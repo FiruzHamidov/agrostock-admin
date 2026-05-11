@@ -386,26 +386,6 @@ export const constantRouterMap = [
   },
 
   {
-    path: '/chats',
-    component: Layout,
-    children: [
-      {
-        path: 'index',
-        name: 'Chats',
-        component: () => import('@/views/chats/index'),
-        meta: {
-          title: 'Чаты клиентов',
-          icon: 'chat',
-          roles: ['admin'],
-        },
-      },
-    ],
-    meta: {
-      availableRoles: ['admin'],
-    },
-  },
-
-  {
     path: '/admin/chats',
     component: Layout,
     redirect: '/admin/chats',

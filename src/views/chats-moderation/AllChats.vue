@@ -18,12 +18,23 @@
         value-format="yyyy-MM-dd"
       />
       <el-button type="primary" @click="onApplyFilters">Применить</el-button>
+      <el-button type="danger" :disabled="!selectedChatIds.length" @click="onBulkDelete">
+        Удалить выбранные ({{ selectedChatIds.length }})
+      </el-button>
     </div>
 
     <el-alert v-if="forbidden" :closable="false" type="error" title="403: доступ запрещен" show-icon />
     <el-alert v-else-if="loadError" :closable="false" :title="loadError" type="error" show-icon />
 
-    <el-table v-loading="loading" :data="items" stripe style="width: 100%" empty-text="Нет данных">
+    <el-table
+      v-loading="loading"
+      :data="items"
+      stripe
+      style="width: 100%"
+      empty-text="Нет данных"
+      @selection-change="onSelectionChange"
+    >
+      <el-table-column type="selection" width="48" />
       <el-table-column prop="id" label="chatId" width="90" />
       <el-table-column label="chatType" width="100">
         <template slot-scope="scope">{{ scope.row._chatType }}</template>
@@ -43,9 +54,10 @@
       <el-table-column label="Кол-во сообщений" min-width="120">
         <template slot-scope="scope">{{ scope.row.messagesCount || scope.row.chatMessagesCount || '-' }}</template>
       </el-table-column>
-      <el-table-column label="Action" width="120" fixed="right">
+      <el-table-column label="Action" width="220" fixed="right">
         <template slot-scope="scope">
           <el-button type="primary" size="mini" @click="openChat(scope.row.id)">Открыть</el-button>
+          <el-button type="danger" size="mini" @click="removeChat(scope.row.id)">Удалить</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -86,6 +98,7 @@ export default {
         search: '',
         period: [],
       },
+      selectedChatIds: [],
     }
   },
 
@@ -130,7 +143,7 @@ export default {
       this.loadError = ''
       this.forbidden = false
       try {
-        const res = await chatModerationApi.findChats(this.$apiClient, this.buildQuery())
+        const res = await chatModerationApi.findAdminChats(this.$apiClient, this.buildQuery())
         const raw = res.data || []
         let mapped = raw.map(item => ({ ...item, _chatType: classifyChatType(item) }))
         if (this.filters.chatType) {
@@ -154,8 +167,62 @@ export default {
       this.fetchChats()
     },
 
+    onSelectionChange(selection) {
+      this.selectedChatIds = selection.map(item => item.id)
+    },
+
     openChat(id) {
       this.$router.push({ name: 'AdminChatsDetails', params: { id: String(id) } })
+    },
+
+    async removeChat(id) {
+      try {
+        await this.$confirm(`Удалить чат #${id}? Будут удалены все сообщения.`, 'Подтверждение', {
+          type: 'warning',
+          confirmButtonText: 'Удалить',
+          cancelButtonText: 'Отмена',
+        })
+      } catch (e) {
+        return
+      }
+
+      try {
+        await chatModerationApi.removeAdminChat(this.$apiClient, id)
+        this.$message({ type: 'success', message: `Чат #${id} удален` })
+        this.selectedChatIds = this.selectedChatIds.filter(chatId => String(chatId) !== String(id))
+        await this.fetchChats()
+      } catch (error) {
+        handleApiError(this, error, 'Не удалось удалить чат')
+      }
+    },
+
+    async onBulkDelete() {
+      if (!this.selectedChatIds.length) {
+        return
+      }
+
+      try {
+        await this.$confirm(
+          `Удалить выбранные чаты (${this.selectedChatIds.length})? Это действие необратимо.`,
+          'Подтверждение',
+          {
+            type: 'warning',
+            confirmButtonText: 'Удалить',
+            cancelButtonText: 'Отмена',
+          }
+        )
+      } catch (e) {
+        return
+      }
+
+      try {
+        await chatModerationApi.bulkDeleteAdminChats(this.$apiClient, this.selectedChatIds)
+        this.$message({ type: 'success', message: 'Выбранные чаты удалены' })
+        this.selectedChatIds = []
+        await this.fetchChats()
+      } catch (error) {
+        handleApiError(this, error, 'Не удалось выполнить массовое удаление чатов')
+      }
     },
   },
 }
@@ -164,7 +231,7 @@ export default {
 <style scoped>
 .filters {
   display: grid;
-  grid-template-columns: 160px 1fr 360px 140px;
+  grid-template-columns: 160px 1fr 360px 140px 220px;
   gap: 12px;
   margin: 16px 0;
 }
