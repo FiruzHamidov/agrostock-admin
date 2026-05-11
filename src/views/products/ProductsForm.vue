@@ -307,7 +307,7 @@ export default {
     },
 
     async fetchData() {
-      const productsService = this.$apiClient.service('admin/products')
+      const productsService = this.$apiClient.service('products')
       let res
       try {
         res = await productsService.get(this.$route.params.id)
@@ -357,7 +357,7 @@ export default {
         return false
       }
 
-      const productsService = this.$apiClient.service('admin/products')
+      const productsService = this.$apiClient.service('products')
 
       try {
         await productsService.patch(this.$route.params.id, {
@@ -383,7 +383,7 @@ export default {
         return false
       }
 
-      const productsService = this.$apiClient.service('admin/products')
+      const productsService = this.$apiClient.service('products')
 
       try {
         await productsService.patch(this.$route.params.id, {
@@ -409,7 +409,7 @@ export default {
         return false
       }
 
-      const productsService = this.$apiClient.service('admin/products')
+      const productsService = this.$apiClient.service('products')
 
       try {
         await productsService.patch(this.$route.params.id, {
@@ -451,7 +451,7 @@ export default {
       }
 
       try {
-        await this.$apiClient.service('admin/products').remove(this.$route.params.id)
+        await this.$apiClient.service('products').remove(this.$route.params.id)
       } catch (err) {
         handleApiError(this, err, 'Не удалось удалить товар')
         return false

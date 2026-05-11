@@ -146,7 +146,7 @@ export default {
 
   methods: {
     async fetchData() {
-      const productsService = this.$apiClient.service('admin/products')
+      const productsService = this.$apiClient.service('products')
 
       this.isLoading = true
 
@@ -209,7 +209,7 @@ export default {
         return false
       }
       try {
-        await this.$apiClient.service('admin/products').remove(id)
+        await this.$apiClient.service('products').remove(id)
       } catch (err) {
         handleApiError(this, err, 'Не удалось удалить товар')
         return false

@@ -4,15 +4,17 @@
       <h2>Стоп-слова</h2>
       <el-button type="primary" @click="openCreate">Добавить</el-button>
     </div>
-    <el-alert v-if="forbidden" :closable="false" type="error" title="403: доступ запрещен" show-icon />
+    <el-alert v-if="notAuthenticated" :closable="false" type="error" title="401: требуется авторизация" show-icon />
+    <el-alert v-else-if="forbidden" :closable="false" type="error" title="403: доступ запрещен" show-icon />
+    <el-alert v-else-if="notFound" :closable="false" type="error" title="404: сервис не найден" show-icon />
     <el-alert v-else-if="loadError" :closable="false" :title="loadError" type="error" show-icon />
 
     <el-table v-loading="loading" :data="items" stripe empty-text="Нет стоп-слов">
-      <el-table-column prop="word" label="word" min-width="220" />
-      <el-table-column prop="isActive" label="isActive" width="100" />
-      <el-table-column prop="createdByUserId" label="createdByUserId" width="140" />
-      <el-table-column prop="createdAt" label="createdAt" min-width="170" />
-      <el-table-column label="Actions" width="280" fixed="right">
+      <el-table-column prop="word" label="Слово" min-width="220" />
+      <el-table-column prop="isActive" label="Активно" width="100" />
+      <el-table-column prop="createdByUserId" label="Кем создано" width="140" />
+      <el-table-column prop="createdAt" label="Дата" min-width="170" />
+      <el-table-column label="Действия" width="280" fixed="right">
         <template slot-scope="scope">
           <el-button size="mini" @click="openEdit(scope.row)">Редактировать</el-button>
           <el-button size="mini" type="warning" @click="toggleActive(scope.row)">
@@ -50,7 +52,9 @@ export default {
   data() {
     return {
       loading: false,
+      notAuthenticated: false,
       forbidden: false,
+      notFound: false,
       loadError: '',
       items: [],
       dialogVisible: false,
@@ -69,7 +73,9 @@ export default {
   methods: {
     async fetchItems() {
       this.loading = true
+      this.notAuthenticated = false
       this.forbidden = false
+      this.notFound = false
       this.loadError = ''
       try {
         const res = await chatModerationApi.findBlockedWords(this.$apiClient, {
@@ -78,8 +84,14 @@ export default {
         })
         this.items = res.data || []
       } catch (error) {
+        if (error && Number(error.code) === 401) {
+          this.notAuthenticated = true
+        }
         if (error && Number(error.code) === 403) {
           this.forbidden = true
+        }
+        if (error && Number(error.code) === 404) {
+          this.notFound = true
         }
         const parsed = handleApiError(this, error, 'Не удалось загрузить стоп-слова')
         this.loadError = parsed.message

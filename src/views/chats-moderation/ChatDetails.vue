@@ -2,7 +2,9 @@
   <div class="app-container">
     <h2>Детали чата #{{ chatId }}</h2>
 
-    <el-alert v-if="forbidden" :closable="false" type="error" title="403: доступ запрещен" show-icon />
+    <el-alert v-if="notAuthenticated" :closable="false" type="error" title="401: требуется авторизация" show-icon />
+    <el-alert v-else-if="forbidden" :closable="false" type="error" title="403: доступ запрещен" show-icon />
+    <el-alert v-else-if="notFound" :closable="false" type="error" title="404: сервис не найден" show-icon />
     <el-alert v-else-if="loadError" :closable="false" :title="loadError" type="error" show-icon />
 
     <el-card v-if="chat" class="mb-3">
@@ -13,17 +15,17 @@
     </el-card>
 
     <el-table v-loading="loading" :data="messages" stripe empty-text="Нет сообщений">
-      <el-table-column prop="id" label="id" width="90" />
-      <el-table-column prop="text" label="text" min-width="260" />
-      <el-table-column label="sender" min-width="160">
+      <el-table-column prop="id" label="ID" width="90" />
+      <el-table-column prop="text" label="Текст" min-width="260" />
+      <el-table-column label="Отправитель" min-width="160">
         <template slot-scope="scope">{{ senderLabel(scope.row) }}</template>
       </el-table-column>
-      <el-table-column prop="type" label="type" width="100" />
-      <el-table-column prop="isRead" label="isRead" width="90" />
-      <el-table-column prop="moderationStatus" label="moderationStatus" min-width="140" />
-      <el-table-column prop="isBlocked" label="isBlocked" width="100" />
-      <el-table-column prop="createdAt" label="createdAt" min-width="170" />
-      <el-table-column label="Actions" width="340" fixed="right">
+      <el-table-column prop="type" label="Тип" width="100" />
+      <el-table-column prop="isRead" label="Прочитано" width="90" />
+      <el-table-column prop="moderationStatus" label="Модерация" min-width="140" />
+      <el-table-column prop="isBlocked" label="Блок" width="100" />
+      <el-table-column prop="createdAt" label="Дата" min-width="170" />
+      <el-table-column label="Действия" width="340" fixed="right">
         <template slot-scope="scope">
           <el-button size="mini" @click="showJson(scope.row)">Открыть JSON</el-button>
           <el-button size="mini" type="warning" @click="toggleBlock(scope.row)">
@@ -61,7 +63,9 @@ export default {
   data() {
     return {
       loading: false,
+      notAuthenticated: false,
       forbidden: false,
+      notFound: false,
       loadError: '',
       chat: null,
       messages: [],
@@ -105,8 +109,14 @@ export default {
       try {
         this.chat = await chatModerationApi.getChat(this.$apiClient, this.chatId)
       } catch (error) {
+        if (error && Number(error.code) === 401) {
+          this.notAuthenticated = true
+        }
         if (error && Number(error.code) === 403) {
           this.forbidden = true
+        }
+        if (error && Number(error.code) === 404) {
+          this.notFound = true
         }
         const parsed = handleApiError(this, error, 'Не удалось загрузить чат')
         this.loadError = parsed.message
@@ -115,6 +125,9 @@ export default {
 
     async fetchMessages() {
       this.loading = true
+      this.notAuthenticated = false
+      this.forbidden = false
+      this.notFound = false
       this.loadError = ''
       try {
         const res = await chatModerationApi.findChatMessages(this.$apiClient, {
@@ -126,8 +139,14 @@ export default {
         this.messages = res.data || []
         this.total = res.total || 0
       } catch (error) {
+        if (error && Number(error.code) === 401) {
+          this.notAuthenticated = true
+        }
         if (error && Number(error.code) === 403) {
           this.forbidden = true
+        }
+        if (error && Number(error.code) === 404) {
+          this.notFound = true
         }
         const parsed = handleApiError(this, error, 'Не удалось загрузить сообщения чата')
         this.loadError = parsed.message

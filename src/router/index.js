@@ -193,6 +193,7 @@ export const constantRouterMap = [
   {
     path: '/arbitrations',
     component: Layout,
+    hidden: true,
     children: [
       {
         path: 'index',

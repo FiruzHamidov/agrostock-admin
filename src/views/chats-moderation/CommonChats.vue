@@ -13,17 +13,19 @@
       <el-input v-if="activeTab === 'category'" v-model="filters.categoryId" clearable placeholder="categoryId" />
       <el-button type="primary" @click="applyFilters">Применить</el-button>
     </div>
-    <el-alert v-if="forbidden" :closable="false" type="error" title="403: доступ запрещен" show-icon />
+    <el-alert v-if="notAuthenticated" :closable="false" type="error" title="401: требуется авторизация" show-icon />
+    <el-alert v-else-if="forbidden" :closable="false" type="error" title="403: доступ запрещен" show-icon />
+    <el-alert v-else-if="notFound" :closable="false" type="error" title="404: сервис не найден" show-icon />
     <el-alert v-else-if="loadError" :closable="false" :title="loadError" type="error" show-icon />
 
     <el-table v-loading="loading" :data="messages" stripe empty-text="Нет сообщений">
-      <el-table-column prop="id" label="id" width="90" />
-      <el-table-column prop="type" label="type" width="100" />
-      <el-table-column prop="categoryId" label="categoryId" width="110" />
-      <el-table-column prop="companyId" label="companyId" width="110" />
-      <el-table-column prop="text" label="text" min-width="280" />
-      <el-table-column prop="createdAt" label="createdAt" min-width="170" />
-      <el-table-column label="Actions" width="220" fixed="right">
+      <el-table-column prop="id" label="ID" width="90" />
+      <el-table-column prop="type" label="Тип" width="100" />
+      <el-table-column prop="categoryId" label="Категория" width="110" />
+      <el-table-column prop="companyId" label="Компания" width="110" />
+      <el-table-column prop="text" label="Текст" min-width="280" />
+      <el-table-column prop="createdAt" label="Дата" min-width="170" />
+      <el-table-column label="Действия" width="220" fixed="right">
         <template slot-scope="scope">
           <el-button size="mini" @click="openJson(scope.row)">Открыть JSON</el-button>
           <el-button size="mini" type="danger" @click="removeMessage(scope.row)">Удалить</el-button>
@@ -59,7 +61,9 @@ export default {
     return {
       activeTab: 'common',
       loading: false,
+      notAuthenticated: false,
       forbidden: false,
+      notFound: false,
       loadError: '',
       messages: [],
       total: 0,
@@ -98,15 +102,23 @@ export default {
 
     async fetchMessages() {
       this.loading = true
+      this.notAuthenticated = false
       this.forbidden = false
+      this.notFound = false
       this.loadError = ''
       try {
         const res = await chatModerationApi.findCommonMessages(this.$apiClient, this.buildQuery())
         this.messages = res.data || []
         this.total = res.total || 0
       } catch (error) {
+        if (error && Number(error.code) === 401) {
+          this.notAuthenticated = true
+        }
         if (error && Number(error.code) === 403) {
           this.forbidden = true
+        }
+        if (error && Number(error.code) === 404) {
+          this.notFound = true
         }
         const parsed = handleApiError(this, error, 'Не удалось загрузить сообщения общего/категорийного чата')
         this.loadError = parsed.message

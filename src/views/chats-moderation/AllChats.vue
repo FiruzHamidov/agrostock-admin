@@ -38,7 +38,7 @@
     >
       <el-table-column type="selection" width="48" />
       <el-table-column prop="id" label="chatId" width="90" />
-      <el-table-column label="chatType" width="100">
+      <el-table-column label="Тип чата" width="100">
         <template slot-scope="scope">{{ scope.row._chatType }}</template>
       </el-table-column>
       <el-table-column label="Участник #1" min-width="220">
@@ -50,13 +50,13 @@
       <el-table-column label="Последнее сообщение" min-width="220">
         <template slot-scope="scope">{{ scope.row.lastMessage && scope.row.lastMessage.text ? scope.row.lastMessage.text : '-' }}</template>
       </el-table-column>
-      <el-table-column label="lastMessageDate" min-width="170">
+      <el-table-column label="Дата сообщения" min-width="170">
         <template slot-scope="scope">{{ scope.row.lastMessage && scope.row.lastMessage.createdAt ? scope.row.lastMessage.createdAt : scope.row.updatedAt }}</template>
       </el-table-column>
       <el-table-column label="Кол-во сообщений" min-width="120">
         <template slot-scope="scope">{{ scope.row.messagesCount || scope.row.chatMessagesCount || '-' }}</template>
       </el-table-column>
-      <el-table-column label="Action" width="220" fixed="right">
+      <el-table-column label="Действия" width="220" fixed="right">
         <template slot-scope="scope">
           <el-button type="primary" size="mini" @click="openChat(scope.row.id)">Открыть</el-button>
           <el-button type="danger" size="mini" @click="removeChat(scope.row.id)">Удалить</el-button>

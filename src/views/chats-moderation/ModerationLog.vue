@@ -22,21 +22,21 @@
     <el-alert v-else-if="loadError" :closable="false" :title="loadError" type="error" show-icon />
 
     <el-table v-loading="loading" :data="items" stripe empty-text="Нет записей">
-      <el-table-column prop="id" label="id" width="90" />
-      <el-table-column prop="entityType" label="entityType" min-width="180" />
+      <el-table-column prop="id" label="ID" width="90" />
+      <el-table-column prop="entityType" label="Сущность" min-width="180" />
       <el-table-column prop="entityId" label="entityId" width="100" />
-      <el-table-column prop="status" label="status" width="120" />
-      <el-table-column prop="reason" label="reason" min-width="180" />
-      <el-table-column prop="originalText" label="originalText" min-width="180" />
-      <el-table-column prop="renderedText" label="renderedText" min-width="180" />
-      <el-table-column label="matchedWords" min-width="180">
+      <el-table-column prop="status" label="Статус" width="120" />
+      <el-table-column prop="reason" label="Причина" min-width="180" />
+      <el-table-column prop="originalText" label="Исходный текст" min-width="180" />
+      <el-table-column prop="renderedText" label="После фильтра" min-width="180" />
+      <el-table-column label="Найденные слова" min-width="180">
         <template slot-scope="scope">{{ normalizeWords(scope.row.matchedWords) }}</template>
       </el-table-column>
       <el-table-column prop="userId" label="userId" width="90" />
       <el-table-column prop="companyId" label="companyId" width="110" />
       <el-table-column prop="moderatorUserId" label="moderatorUserId" width="130" />
       <el-table-column prop="createdAt" label="createdAt" min-width="170" />
-      <el-table-column label="Action" width="320" fixed="right">
+      <el-table-column label="Действия" width="320" fixed="right">
         <template slot-scope="scope">
           <el-button size="mini" @click="goToSource(scope.row)">К сообщению</el-button>
           <el-button size="mini" type="success" @click="updateStatus(scope.row, 'approved')">Одобрить</el-button>
