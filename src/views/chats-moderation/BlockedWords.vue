@@ -4,8 +4,8 @@
       <h2>Стоп-слова</h2>
       <el-button type="primary" @click="openCreate">Добавить</el-button>
     </div>
-    <el-alert v-if="forbidden" type="error" title="403: доступ запрещен" show-icon :closable="false" />
-    <el-alert v-else-if="loadError" type="error" :title="loadError" show-icon :closable="false" />
+    <el-alert v-if="forbidden" type="error" title="403: доступ запрещен" :closable="false" show-icon />
+    <el-alert v-else-if="loadError" :title="loadError" type="error" :closable="false" show-icon />
 
     <el-table v-loading="loading" :data="items" stripe empty-text="Нет стоп-слов">
       <el-table-column prop="word" label="word" min-width="220" />
@@ -23,7 +23,7 @@
       </el-table-column>
     </el-table>
 
-    <el-dialog :title="form.id ? 'Редактирование' : 'Добавить стоп-слово'" :visible.sync="dialogVisible" width="460px">
+    <el-dialog :visible.sync="dialogVisible" :title="form.id ? 'Редактирование' : 'Добавить стоп-слово'" width="460px">
       <el-form label-position="top">
         <el-form-item label="word">
           <el-input v-model="form.word" placeholder="Введите слово" />

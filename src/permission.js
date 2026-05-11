@@ -26,7 +26,6 @@ const whiteList = ['/login', '/403', '/404'] // 不重定向白名单
 router.beforeEach((to, from, next) => {
   NProgress.start()
   if (whiteList.indexOf(to.path) > -1) {
-    console.log('a?')
     next()
   } else if (store.getters['user/token']) {
     hasPermission(to, from, next)

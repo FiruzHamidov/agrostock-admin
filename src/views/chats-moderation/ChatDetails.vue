@@ -2,8 +2,8 @@
   <div class="app-container">
     <h2>Детали чата #{{ chatId }}</h2>
 
-    <el-alert v-if="forbidden" type="error" title="403: доступ запрещен" show-icon :closable="false" />
-    <el-alert v-else-if="loadError" type="error" :title="loadError" show-icon :closable="false" />
+    <el-alert v-if="forbidden" type="error" title="403: доступ запрещен" :closable="false" show-icon />
+    <el-alert v-else-if="loadError" :title="loadError" type="error" :closable="false" show-icon />
 
     <el-card v-if="chat" class="mb-3">
       <div slot="header">Участники</div>
@@ -36,16 +36,16 @@
 
     <div class="pager">
       <el-pagination
-        background
-        layout="total, prev, pager, next"
         :total="total"
         :page-size="pagination.limit"
         :current-page.sync="pagination.page"
+        layout="total, prev, pager, next"
+        background
         @current-change="fetchMessages"
       />
     </div>
 
-    <el-dialog title="JSON сообщения" :visible.sync="jsonDialogVisible" width="60%">
+    <el-dialog :visible.sync="jsonDialogVisible" title="JSON сообщения" width="60%">
       <pre>{{ selectedJson }}</pre>
     </el-dialog>
   </div>

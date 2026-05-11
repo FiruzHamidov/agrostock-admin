@@ -20,8 +20,8 @@
       <el-button type="primary" @click="onApplyFilters">Применить</el-button>
     </div>
 
-    <el-alert v-if="forbidden" type="error" title="403: доступ запрещен" show-icon :closable="false" />
-    <el-alert v-else-if="loadError" type="error" :title="loadError" show-icon :closable="false" />
+    <el-alert v-if="forbidden" type="error" title="403: доступ запрещен" :closable="false" show-icon />
+    <el-alert v-else-if="loadError" :title="loadError" type="error" :closable="false" show-icon />
 
     <el-table v-loading="loading" :data="items" stripe style="width: 100%" empty-text="Нет данных">
       <el-table-column prop="id" label="chatId" width="90" />
@@ -52,11 +52,11 @@
 
     <div class="pager">
       <el-pagination
-        background
-        layout="total, prev, pager, next"
         :total="total"
         :page-size="pagination.limit"
         :current-page.sync="pagination.page"
+        layout="total, prev, pager, next"
+        background
         @current-change="fetchChats"
       />
     </div>
