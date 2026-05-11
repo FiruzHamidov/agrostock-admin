@@ -48,8 +48,8 @@
         :total="total"
         :page-size="pagination.limit"
         :current-page.sync="pagination.page"
-        layout="sizes, total, prev, pager, next"
         :page-sizes="[20, 50, 100]"
+        layout="sizes, total, prev, pager, next"
         background
         @size-change="onSizeChange"
         @current-change="fetchData"

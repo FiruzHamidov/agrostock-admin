@@ -38,8 +38,8 @@
           <el-option label="unitPrice" value="unitPrice" />
         </el-select>
         <el-select v-model="sortOrder" placeholder="Порядок" class="m-l-1 w-120">
-          <el-option label="DESC" :value="-1" />
-          <el-option label="ASC" :value="1" />
+          <el-option :value="-1" label="DESC" />
+          <el-option :value="1" label="ASC" />
         </el-select>
         <el-button class="m-l-1" @click="onFilterClick">Применить</el-button>
       </div>

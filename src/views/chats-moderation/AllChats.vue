@@ -18,7 +18,7 @@
         value-format="yyyy-MM-dd"
       />
       <el-button type="primary" @click="onApplyFilters">Применить</el-button>
-      <el-button type="danger" :disabled="!selectedChatIds.length" @click="onBulkDelete">
+      <el-button :disabled="!selectedChatIds.length" type="danger" @click="onBulkDelete">
         Удалить выбранные ({{ selectedChatIds.length }})
       </el-button>
     </div>
