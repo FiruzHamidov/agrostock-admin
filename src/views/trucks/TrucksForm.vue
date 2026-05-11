@@ -93,6 +93,19 @@
       </el-row>
 
       <el-row>
+        <el-col :span="8">
+          <el-form-item label="Статус модерации">
+            <el-select v-model="form.moderationStatus" placeholder="Выберите статус" class="w100">
+              <el-option label="Ожидает" value="pending" />
+              <el-option label="Одобрен" value="approved" />
+              <el-option label="Отклонен" value="rejected" />
+              <el-option label="Заблокирован" value="banned" />
+            </el-select>
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <el-row>
         <el-col :span="24">
           <el-form-item label="Комментарий модерации">
             <el-input
@@ -172,6 +185,7 @@ export default {
         cityId: null,
         address: '',
         moderationComment: '',
+        moderationStatus: 'pending',
         status: 'active',
         country: {},
         city: {},
@@ -190,12 +204,27 @@ export default {
     async fetchData() {
       const trucksService = this.$apiClient.service('trucks')
       const res = await trucksService.get(this.$route.params.id)
+      const truck = res.truck || res.data || res
+      const moderation = res.moderation || {}
 
       this.form = {
         ...this.getDefaultForm(),
-        ...res,
-        country: res.country || {},
-        city: res.city || {},
+        ...truck,
+        name: truck.name || truck.title || '',
+        number: truck.number || truck.plateNumber || truck.registrationNumber || '',
+        brand: truck.brand || truck.make || '',
+        model: truck.model || '',
+        year: truck.year || truck.manufactureYear || null,
+        bodyType: truck.bodyType || truck.body_type || '',
+        capacity: truck.capacity || truck.loadCapacity || null,
+        volume: truck.volume || truck.cargoVolume || null,
+        countryId: truck.countryId || truck.country_id || (truck.country && truck.country.country_id) || null,
+        cityId: truck.cityId || truck.city_id || (truck.city && truck.city.city_id) || null,
+        moderationStatus: truck.moderationStatus || moderation.status || 'pending',
+        moderationComment:
+          truck.moderationComment || truck.comment || moderation.comment || moderation.moderationComment || '',
+        country: truck.country || {},
+        city: truck.city || {},
       }
     },
 
@@ -213,6 +242,7 @@ export default {
 
       const payload = {
         ...this.form,
+        comment: this.form.moderationComment,
       }
 
       try {

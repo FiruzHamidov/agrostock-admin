@@ -12,7 +12,7 @@ function hasPermission(to, from, next) {
   if (isAccessible(to, userType)) {
     next()
   } else {
-    next({ path: '/401', replace: true, query: { noGoBack: true } })
+    next({ path: '/403', replace: true, query: { noGoBack: true } })
   }
 }
 
@@ -22,7 +22,7 @@ function isAccessible(routeInfo, role) {
   )
 }
 
-const whiteList = ['/login', '/401', '/404'] // 不重定向白名单
+const whiteList = ['/login', '/403', '/404'] // 不重定向白名单
 router.beforeEach((to, from, next) => {
   NProgress.start()
   if (whiteList.indexOf(to.path) > -1) {

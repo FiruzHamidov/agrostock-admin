@@ -25,6 +25,7 @@ export const constantRouterMap = [
   { path: '/login', component: () => import('@/views/login/index'), hidden: true },
 
   { path: '/404', component: () => import('@/views/404'), hidden: true },
+  { path: '/403', component: () => import('@/views/403'), hidden: true },
 
   {
     path: '/',
@@ -401,6 +402,63 @@ export const constantRouterMap = [
     ],
     meta: {
       availableRoles: ['admin'],
+    },
+  },
+
+  {
+    path: '/admin/chats',
+    component: Layout,
+    redirect: '/admin/chats',
+    children: [
+      {
+        path: '',
+        name: 'AdminChatsAll',
+        component: () => import('@/views/chats-moderation/AllChats'),
+        meta: {
+          title: 'Все чаты',
+          icon: 'chat',
+        },
+      },
+      {
+        path: 'common',
+        name: 'AdminChatsCommon',
+        component: () => import('@/views/chats-moderation/CommonChats'),
+        meta: {
+          title: 'Общий и категории',
+          icon: 'chat',
+        },
+      },
+      {
+        path: 'moderation',
+        name: 'AdminChatsModerationLog',
+        component: () => import('@/views/chats-moderation/ModerationLog'),
+        meta: {
+          title: 'Лог модерации',
+          icon: 'chat',
+        },
+      },
+      {
+        path: 'blocked-words',
+        name: 'AdminChatsBlockedWords',
+        component: () => import('@/views/chats-moderation/BlockedWords'),
+        meta: {
+          title: 'Стоп-слова',
+          icon: 'chat',
+        },
+      },
+      {
+        path: ':id',
+        name: 'AdminChatsDetails',
+        hidden: true,
+        component: () => import('@/views/chats-moderation/ChatDetails'),
+        meta: {
+          title: 'Детали чата',
+          icon: 'chat',
+        },
+      },
+    ],
+    meta: {
+      availableRoles: ['admin', 'moderator', 'superadmin'],
     },
   },
 
