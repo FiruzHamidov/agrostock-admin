@@ -282,7 +282,6 @@ export default {
         { value: 'suspended', label: 'Приостановлен' },
         { value: 'doneWithWinner', label: 'Завершен (есть победитель)' },
         { value: 'doneWithoutWinner', label: 'Завершен (нет победителя)' },
-        { value: 'banned', label: 'Заблокирован' },
       ],
       packagingTypes,
       batchUnitSizes,

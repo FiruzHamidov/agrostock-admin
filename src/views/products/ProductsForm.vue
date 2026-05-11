@@ -242,6 +242,7 @@
         <el-form-item>
           <el-button type="primary" @click="onEdit"> Изменить </el-button>
           <el-button @click="onCancel">Отмена</el-button>
+          <el-button type="danger" plain @click="onDelete">Удалить</el-button>
           <el-button v-if="form.status === 'active'" @click="onBan">Заблокировать</el-button>
           <el-button v-if="form.status === 'banned'" @click="onRestore">Разблокировать</el-button>
         </el-form-item>
@@ -255,6 +256,7 @@ import validateForm from '@/mixins/validateForm'
 import confirmUpdate from '@/mixins/confirmUpdate'
 import AsyncSelect from '@/components/AsyncSelect'
 import Upload from '@/components/Upload'
+import { handleApiError } from '@/utils/api-error'
 
 import { packagingTypes, batchUnitSizes, taxTypes, currencies } from '@/utils/variables'
 
@@ -305,8 +307,14 @@ export default {
     },
 
     async fetchData() {
-      const productsService = this.$apiClient.service('products')
-      const res = await productsService.get(this.$route.params.id)
+      const productsService = this.$apiClient.service('admin/products')
+      let res
+      try {
+        res = await productsService.get(this.$route.params.id)
+      } catch (err) {
+        handleApiError(this, err, 'Не удалось получить товар')
+        return false
+      }
 
       this.form = res
     },
@@ -349,17 +357,14 @@ export default {
         return false
       }
 
-      const productsService = this.$apiClient.service('products')
+      const productsService = this.$apiClient.service('admin/products')
 
       try {
         await productsService.patch(this.$route.params.id, {
           ...this.form,
         })
       } catch (err) {
-        this.$message({
-          message: err.message,
-          type: 'error',
-        })
+        handleApiError(this, err, 'Не удалось обновить товар')
         return false
       }
 
@@ -378,17 +383,14 @@ export default {
         return false
       }
 
-      const productsService = this.$apiClient.service('products')
+      const productsService = this.$apiClient.service('admin/products')
 
       try {
         await productsService.patch(this.$route.params.id, {
           status: 'banned',
         })
       } catch (err) {
-        this.$message({
-          message: err.message,
-          type: 'error',
-        })
+        handleApiError(this, err, 'Не удалось изменить статус товара')
         return false
       }
 
@@ -407,17 +409,14 @@ export default {
         return false
       }
 
-      const productsService = this.$apiClient.service('products')
+      const productsService = this.$apiClient.service('admin/products')
 
       try {
         await productsService.patch(this.$route.params.id, {
           status: 'active',
         })
       } catch (err) {
-        this.$message({
-          message: err.message,
-          type: 'error',
-        })
+        handleApiError(this, err, 'Не удалось изменить статус товара')
         return false
       }
 
@@ -442,6 +441,29 @@ export default {
       })
 
       this.$router.push({ name: 'Products' })
+    },
+
+    async onDelete() {
+      try {
+        await this.confirmUpdate('Точно удалить товар?', 'Удаление отменено')
+      } catch (err) {
+        return false
+      }
+
+      try {
+        await this.$apiClient.service('admin/products').remove(this.$route.params.id)
+      } catch (err) {
+        handleApiError(this, err, 'Не удалось удалить товар')
+        return false
+      }
+
+      this.$message({
+        message: 'Товар удален!',
+        type: 'success',
+      })
+
+      this.$router.push({ name: 'Products' })
+      return true
     },
   },
 }

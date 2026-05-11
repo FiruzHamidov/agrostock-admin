@@ -376,12 +376,32 @@ export const constantRouterMap = [
         meta: {
           title: 'Модерация грузовиков',
           icon: 'complaint',
-          roles: ['admin'],
+          roles: ['admin', 'moderator', 'superadmin'],
         },
       },
     ],
     meta: {
-      availableRoles: ['admin'],
+      availableRoles: ['admin', 'moderator', 'superadmin'],
+    },
+  },
+
+  {
+    path: '/product-moderation',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'ProductModeration',
+        component: () => import('@/views/products/ProductModeration'),
+        meta: {
+          title: 'Модерация товаров',
+          icon: 'complaint',
+          roles: ['admin', 'moderator', 'superadmin'],
+        },
+      },
+    ],
+    meta: {
+      availableRoles: ['admin', 'moderator', 'superadmin'],
     },
   },
 

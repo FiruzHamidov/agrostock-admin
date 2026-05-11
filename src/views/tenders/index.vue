@@ -4,7 +4,26 @@
       class="top-menu el-col el-col-24 el-col-xs-24 el-col-sm-24 el-col-md-24 tp-text--right mb-4"
     >
       <div class="filters">
-        <el-input v-model="filters.search" placeholder="Название" />
+        <el-input v-model="filters.$search" clearable placeholder="Поиск" />
+        <el-select v-model="filters.status" clearable placeholder="Статус">
+          <el-option v-for="item in statusesList" :key="item.value" :label="item.label" :value="item.value" />
+        </el-select>
+        <el-select v-model="filters.type" clearable placeholder="Тип">
+          <el-option label="Продажа" value="sell" />
+          <el-option label="Покупка" value="buy" />
+        </el-select>
+        <el-input v-model.number="filters.companyId" clearable type="number" placeholder="companyId" class="w-140" />
+        <el-input
+          v-model.number="filters.categoryId"
+          clearable
+          type="number"
+          placeholder="categoryId"
+          class="w-140"
+        />
+        <el-input v-model.number="filters.countryId" clearable type="number" placeholder="countryId" class="w-140" />
+        <el-input v-model.number="filters.cityId" clearable type="number" placeholder="cityId" class="w-120" />
+        <el-switch v-model="filters.$getMine" active-text="$getMine" />
+        <el-switch v-model="filters.$getParticipants" active-text="$getParticipants" />
         <el-button @click="onFilterClick"> Применить </el-button>
       </div>
       <div class="add-button" />
@@ -120,8 +139,15 @@ export default {
         suspended: 'Приостановлен',
         doneWithWinner: 'Завершен (есть победитель)',
         doneWithoutWinner: 'Завершен (нет победителя)',
-        banned: 'Заблокирован',
       },
+      statusesList: [
+        { value: 'wait', label: 'В ожидании' },
+        { value: 'active', label: 'Активен' },
+        { value: 'cancelled', label: 'Отменен' },
+        { value: 'suspended', label: 'Приостановлен' },
+        { value: 'doneWithWinner', label: 'Завершен (есть победитель)' },
+        { value: 'doneWithoutWinner', label: 'Завершен (нет победителя)' },
+      ],
     }
   },
 
@@ -134,39 +160,6 @@ export default {
       const tendersService = this.$apiClient.service('tenders')
       this.isLoading = true
 
-      if (this.companyId !== -1) {
-        const query = {
-          $limit: this.limit,
-          $skip: this.page - 1 ? (this.page - 1) * this.limit : 0,
-          $sort: {
-            createdAt: -1,
-          },
-          companyId: this.companyId,
-        }
-
-        Object.keys(this.filters).forEach(key => {
-          if (this.filters[key]) {
-            query[key] = this.filters[key]
-          }
-        })
-        const response = await tendersService.find({
-          query,
-        })
-
-        const { data, total } = response
-
-        if (data.length === 0 && this.page > 1) {
-          this.page -= 1
-          return await this.fetchData()
-        }
-
-        this.tenders = data
-        this.total = total
-
-        this.isLoading = false
-        return true
-      }
-
       const query = {
         $limit: this.limit,
         $skip: this.page - 1 ? (this.page - 1) * this.limit : 0,
@@ -175,8 +168,17 @@ export default {
         },
       }
 
+      if (this.companyId !== -1) {
+        query.companyId = this.companyId
+      }
+
       Object.keys(this.filters).forEach(key => {
-        if (this.filters[key]) {
+        if (
+          this.filters[key] !== '' &&
+          this.filters[key] !== null &&
+          this.filters[key] !== undefined &&
+          !(typeof this.filters[key] === 'boolean' && this.filters[key] === false)
+        ) {
           query[key] = this.filters[key]
         }
       })
@@ -228,3 +230,20 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.w-120 {
+  width: 120px;
+}
+
+.w-140 {
+  width: 140px;
+}
+</style>

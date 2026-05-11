@@ -10,7 +10,11 @@ export function extractRequestId(error) {
 }
 
 export function getErrorMessage(error, fallback) {
+  const details = (error && error.errors) || (error && error.data && error.data.errors) || null
+  const firstDetail = details && typeof details === 'object' ? details[Object.keys(details)[0]] : null
+
   return (
+    firstDetail ||
     (error && error.message) ||
     (error && error.data && error.data.message) ||
     (error && error.response && error.response.data && error.response.data.message) ||

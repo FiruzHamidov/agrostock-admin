@@ -10,6 +10,7 @@
           <el-option label="Отклонен" value="rejected" />
           <el-option label="Заблокирован" value="banned" />
         </el-select>
+        <el-input v-model.number="filters.truckId" clearable type="number" placeholder="truckId" class="w-140" />
         <el-button @click="onFilterClick"> Применить </el-button>
       </div>
       <div class="add-button" />
@@ -107,6 +108,7 @@ export default {
       truckModerations: [],
       filters: {
         status: 'pending',
+        truckId: null,
       },
       isLoading: true,
       total: 1,
@@ -229,3 +231,16 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.w-140 {
+  width: 140px;
+}
+</style>
