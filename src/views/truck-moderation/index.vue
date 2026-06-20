@@ -260,13 +260,6 @@ export default {
 </script>
 
 <style scoped>
-.filters {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
 .w-140 {
   width: 140px;
 }

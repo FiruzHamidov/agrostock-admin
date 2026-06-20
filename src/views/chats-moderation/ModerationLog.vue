@@ -216,20 +216,12 @@ export default {
 </script>
 
 <style scoped>
-.filters {
-  display: flex;
-  gap: 8px;
-  margin: 12px 0;
-  align-items: center;
-  flex-wrap: wrap;
+.pager {
+  margin-top: 16px;
+  text-align: right;
 }
 
 .w-140 {
   width: 140px;
-}
-
-.pager {
-  margin-top: 16px;
-  text-align: right;
 }
 </style>

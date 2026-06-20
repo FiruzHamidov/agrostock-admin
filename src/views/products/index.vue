@@ -226,17 +226,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
-.m-l-1 {
-  margin-left: 8px;
-}
-
 .w-120 {
   width: 120px;
 }

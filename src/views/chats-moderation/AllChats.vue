@@ -241,13 +241,6 @@ export default {
 </script>
 
 <style scoped>
-.filters {
-  display: grid;
-  grid-template-columns: 160px 1fr 360px 140px 220px;
-  gap: 12px;
-  margin: 16px 0;
-}
-
 .pager {
   margin-top: 16px;
   text-align: right;

@@ -257,13 +257,6 @@ export default {
 </script>
 
 <style scoped>
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-
 .w-120 {
   width: 120px;
 }

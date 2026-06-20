@@ -234,9 +234,3 @@ export default {
   },
 }
 </script>
-
-<style lang="scss" scoped>
-.m-l-1 {
-  margin-left: 10px;
-}
-</style>

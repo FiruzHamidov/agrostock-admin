@@ -166,12 +166,6 @@ export default {
 </script>
 
 <style scoped>
-.filters {
-  display: flex;
-  gap: 12px;
-  margin: 14px 0;
-}
-
 .pager {
   margin-top: 16px;
   text-align: right;
