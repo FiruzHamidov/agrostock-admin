@@ -1,12 +1,21 @@
 <template>
   <div class="dashboard-container">
     <div class="stats">
+      <el-alert
+        v-if="loadError"
+        :closable="false"
+        :title="loadError"
+        class="dashboard-alert"
+        type="error"
+        show-icon
+      />
       <div class="line-charts">
         <el-row v-if="lineChart">
           <vue-element-loading :active="isLoading" spinner="bar-fade-scale" />
           <p class="center-text text-style">Динамика товаров, торгов и сделок</p>
           <line-chart-by-arrays :chart-data="lineChart" />
         </el-row>
+        <el-empty v-else-if="!isLoading" description="Нет данных по динамике" />
       </div>
       
       <div v-if="profitLineChart" class="line-charts">
@@ -43,6 +52,7 @@
           <pie-chart :chart-data="transformToPieChart(getPieChartsLabel(pieChart.tendersStatuses, tenderStatuses, 'status'))" />
         </div>
       </div>
+      <el-empty v-if="!isLoading && !pieChart && !loadError" description="Нет данных для графиков" />
     </div>
   </div>
 </template>
@@ -59,6 +69,7 @@ import LineChart from './components/LineChart'
 import PieChart from './components/PieChart'
 
 import { tenderStatuses, tenderReports, dealStatuses, productsReports } from '@/utils/variables'
+import { handleApiError } from '@/utils/api-error'
 
 export default {
   name: 'Dashboard',
@@ -83,6 +94,7 @@ export default {
       profitLineChart: null,
       pieChart: null,
       isLoading: true,
+      loadError: '',
       tenderStatuses,
       tenderReports,
       dealStatuses,
@@ -97,23 +109,26 @@ export default {
   methods: {
     async fetchData() {
       this.isLoading = true
+      this.loadError = ''
 
       const query = {}
 
-      const res = await this.$apiClient.service('stats/line').find({
-        query,
-      })
+      try {
+        const res = await this.$apiClient.service('stats/line').find({ query })
 
-      this.lineChart = res
+        this.lineChart = res
 
-      const profitRes = await this.$apiClient.service('stats/line-transactions').find({
-        query,
-      })
-      this.profitLineChart = profitRes.replenishment
+        const profitRes = await this.$apiClient.service('stats/line-transactions').find({ query })
+        this.profitLineChart = profitRes.replenishment || []
 
-      this.pieChart = await this.$apiClient.service('stats/pie').find({
-        query,
-      })
+        this.pieChart = await this.$apiClient.service('stats/pie').find({ query })
+      } catch (err) {
+        const parsed = handleApiError(this, err, 'Не удалось загрузить статистику')
+        this.loadError = parsed.message
+        this.lineChart = null
+        this.profitLineChart = null
+        this.pieChart = null
+      }
 
       this.isLoading = false
     },
@@ -125,12 +140,13 @@ export default {
     },
 
     transformToProfitLineChart() {
+      const profitLineChart = this.profitLineChart || []
       return {
-        dates: this.profitLineChart.map(e => e.date),
+        dates: profitLineChart.map(e => e.date),
         quantities: {
           company: {
             name: 'Прибыль',
-            data: this.profitLineChart.map(e => e.sum),
+            data: profitLineChart.map(e => e.sum),
           },
         },
       }
@@ -234,5 +250,9 @@ export default {
 
 .margin-left {
   margin-left: 15px;
+}
+
+.dashboard-alert {
+  margin-bottom: 16px;
 }
 </style>

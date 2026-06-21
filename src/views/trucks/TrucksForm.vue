@@ -1,19 +1,19 @@
 <template>
   <div class="app-container">
-    <el-form ref="ruleForm" :model="form" label-width="160px" label-position="top">
+    <el-form ref="ruleForm" :rules="rules" :model="form" label-width="160px" label-position="top">
       <el-row>
         <el-col :span="8">
-          <el-form-item label="Название">
+          <el-form-item label="Название" prop="name">
             <el-input v-model="form.name" />
           </el-form-item>
         </el-col>
         <el-col :span="7" :offset="1">
-          <el-form-item label="Номер/гос. знак">
+          <el-form-item label="Номер/гос. знак" prop="number">
             <el-input v-model="form.number" />
           </el-form-item>
         </el-col>
         <el-col :span="7" :offset="1">
-          <el-form-item label="Статус объявления">
+          <el-form-item label="Статус объявления" prop="status">
             <el-select v-model="form.status" placeholder="Выберите статус" class="w100">
               <el-option label="Активен" value="active" />
               <el-option label="Оффлайн" value="offline" />
@@ -25,17 +25,17 @@
 
       <el-row>
         <el-col :span="8">
-          <el-form-item label="Марка">
+          <el-form-item label="Марка" prop="brand">
             <el-input v-model="form.brand" />
           </el-form-item>
         </el-col>
         <el-col :span="7" :offset="1">
-          <el-form-item label="Модель">
+          <el-form-item label="Модель" prop="model">
             <el-input v-model="form.model" />
           </el-form-item>
         </el-col>
         <el-col :span="7" :offset="1">
-          <el-form-item label="Год">
+          <el-form-item label="Год" prop="year">
             <el-input v-model="form.year" type="number" />
           </el-form-item>
         </el-col>
@@ -43,7 +43,7 @@
 
       <el-row>
         <el-col :span="8">
-          <el-form-item label="Страна">
+          <el-form-item label="Страна" prop="countryId">
             <AsyncSelect
               :value="form.country.name"
               :reduce="val => val.country_id"
@@ -55,7 +55,7 @@
           </el-form-item>
         </el-col>
         <el-col :span="7" :offset="1">
-          <el-form-item label="Город">
+          <el-form-item label="Город" prop="cityId">
             <AsyncSelect
               :value="form.city.name"
               :reduce="val => val.city_id"
@@ -68,7 +68,7 @@
           </el-form-item>
         </el-col>
         <el-col :span="7" :offset="1">
-          <el-form-item label="Адрес">
+          <el-form-item label="Адрес" prop="address">
             <el-input v-model="form.address" />
           </el-form-item>
         </el-col>
@@ -76,17 +76,17 @@
 
       <el-row>
         <el-col :span="8">
-          <el-form-item label="Тип кузова">
+          <el-form-item label="Тип кузова" prop="bodyType">
             <el-input v-model="form.bodyType" />
           </el-form-item>
         </el-col>
         <el-col :span="7" :offset="1">
-          <el-form-item label="Грузоподъемность (кг)">
+          <el-form-item label="Грузоподъемность (кг)" prop="capacity">
             <el-input v-model="form.capacity" type="number" />
           </el-form-item>
         </el-col>
         <el-col :span="7" :offset="1">
-          <el-form-item label="Объем (м3)">
+          <el-form-item label="Объем (м3)" prop="volume">
             <el-input v-model="form.volume" type="number" />
           </el-form-item>
         </el-col>
@@ -94,7 +94,7 @@
 
       <el-row>
         <el-col :span="8">
-          <el-form-item label="Статус модерации">
+          <el-form-item label="Статус модерации" prop="moderationStatus">
             <el-select v-model="form.moderationStatus" placeholder="Выберите статус" class="w100">
               <el-option label="Ожидает" value="pending" />
               <el-option label="Одобрен" value="approved" />
@@ -146,8 +146,34 @@ export default {
   mixins: [confirmUpdate],
 
   data() {
+    const requiredNumber = message => (rule, value, callback) => {
+      const number = this.toNumberOrUndefined(value)
+
+      if (number === undefined) {
+        callback(new Error(message))
+        return
+      }
+
+      callback()
+    }
+
     return {
       form: this.getDefaultForm(),
+      rules: {
+        name: [{ required: true, message: 'Введите название', trigger: 'blur' }],
+        number: [{ required: true, message: 'Введите номер/гос. знак', trigger: 'blur' }],
+        status: [{ required: true, message: 'Выберите статус объявления', trigger: 'change' }],
+        brand: [{ required: true, message: 'Введите марку', trigger: 'blur' }],
+        model: [{ required: true, message: 'Введите модель', trigger: 'blur' }],
+        year: [{ validator: requiredNumber('Введите год числом'), trigger: 'blur' }],
+        countryId: [{ required: true, message: 'Выберите страну', trigger: 'change' }],
+        cityId: [{ required: true, message: 'Выберите город', trigger: 'change' }],
+        address: [{ required: true, message: 'Введите адрес', trigger: 'blur' }],
+        bodyType: [{ required: true, message: 'Введите тип кузова', trigger: 'blur' }],
+        capacity: [{ validator: requiredNumber('Введите грузоподъемность числом'), trigger: 'blur' }],
+        volume: [{ validator: requiredNumber('Введите объем числом'), trigger: 'blur' }],
+        moderationStatus: [{ required: true, message: 'Выберите статус модерации', trigger: 'change' }],
+      },
     }
   },
 
@@ -230,6 +256,9 @@ export default {
 
     async onSave() {
       const trucksService = this.$apiClient.service('trucks')
+      const isValid = await this.$refs.ruleForm.validate()
+
+      if (!isValid) return false
 
       try {
         await this.confirmUpdate(
@@ -240,10 +269,7 @@ export default {
         return false
       }
 
-      const payload = {
-        ...this.form,
-        comment: this.form.moderationComment,
-      }
+      const payload = this.getSavePayload()
 
       try {
         if (this.isEdit) {
@@ -266,6 +292,41 @@ export default {
 
       this.$router.push({ name: 'Trucks' })
       return true
+    },
+
+    getSavePayload() {
+      const payload = {
+        name: this.form.name,
+        number: this.form.number,
+        brand: this.form.brand,
+        model: this.form.model,
+        year: this.toNumberOrUndefined(this.form.year),
+        bodyType: this.form.bodyType,
+        capacity: this.toNumberOrUndefined(this.form.capacity),
+        volume: this.toNumberOrUndefined(this.form.volume),
+        countryId: this.toNumberOrUndefined(this.form.countryId),
+        cityId: this.toNumberOrUndefined(this.form.cityId),
+        address: this.form.address,
+        status: this.form.status,
+        moderationStatus: this.form.moderationStatus,
+        moderationComment: this.form.moderationComment,
+        comment: this.form.moderationComment,
+      }
+
+      Object.keys(payload).forEach(key => {
+        if (payload[key] === undefined) {
+          delete payload[key]
+        }
+      })
+
+      return payload
+    },
+
+    toNumberOrUndefined(value) {
+      if (value === '' || value === null || value === undefined) return undefined
+      const normalizedValue = typeof value === 'string' ? value.replace(',', '.') : value
+      const number = Number(normalizedValue)
+      return Number.isNaN(number) ? undefined : number
     },
 
     async onBan() {

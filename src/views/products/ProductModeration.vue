@@ -8,9 +8,24 @@
           <el-option label="Отклонен" value="rejected" />
           <el-option label="Заблокирован" value="banned" />
         </el-select>
-        <el-input v-model.number="filters.productId" clearable type="number" placeholder="productId" class="w-140" />
+        <AsyncSelect
+          :value="filters.productId"
+          :reduce="getProductId"
+          :bind="{ getOptionLabel: getProductLabel }"
+          class="w-240"
+          clearable
+          service="products"
+          label="name"
+          placeholder="Товар"
+          @value-changed="v => (filters.productId = v)"
+        />
         <el-input v-model.number="filters.companyId" clearable type="number" placeholder="companyId" class="w-140" />
         <el-button @click="onFilterClick">Применить</el-button>
+      </div>
+      <div class="add-button">
+        <router-link :to="{ name: 'addProductModeration' }">
+          <el-button type="success" icon="el-icon-plus" circle />
+        </router-link>
       </div>
     </div>
     <el-alert v-if="notAuthenticated" :closable="false" type="error" title="401: требуется авторизация" show-icon />
@@ -60,12 +75,36 @@
         <template slot-scope="scope">{{ scope.row.createdAt | toDateFormat }}</template>
       </el-table-column>
 
-      <el-table-column align="center" fixed="right" label="Действия" width="250">
+      <el-table-column align="center" fixed="right" label="Действия" width="360">
         <template slot-scope="scope">
           <div class="el-button-group">
+            <router-link
+              :to="{ name: 'readProductModeration', params: { id: scope.row.id } }"
+              tag="button"
+              class="el-button el-button--default el-button--small"
+            >
+              <i class="el-icon-document" />
+            </router-link>
+            <router-link
+              :to="{ name: 'editProductModeration', params: { id: scope.row.id } }"
+              tag="button"
+              class="el-button el-button--default el-button--small"
+            >
+              <i class="el-icon-edit" />
+            </router-link>
+            <router-link
+              :to="{ name: 'readProducts', params: { id: scope.row.productId } }"
+              tag="button"
+              class="el-button el-button--default el-button--small"
+            >
+              <i class="el-icon-view" />
+            </router-link>
             <el-button size="small" type="success" @click="moderate(scope.row, 'approved')">Одобрить</el-button>
             <el-button size="small" type="warning" @click="moderate(scope.row, 'rejected')">Отклонить</el-button>
             <el-button size="small" type="danger" @click="moderate(scope.row, 'banned')">Блок</el-button>
+            <el-button size="small" @click="handleDelete(scope.row.id)">
+              <i class="el-icon-delete" />
+            </el-button>
           </div>
         </template>
       </el-table-column>
@@ -87,9 +126,15 @@
 <script>
 import confirmUpdate from '@/mixins/confirmUpdate'
 import { handleApiError } from '@/utils/api-error'
+import AsyncSelect from '@/components/AsyncSelect'
 
 export default {
   name: 'ProductModeration',
+
+  components: {
+    AsyncSelect,
+  },
+
   mixins: [confirmUpdate],
 
   data() {
@@ -177,15 +222,34 @@ export default {
       return statuses[status] || status || '-'
     },
 
+    getProductId(product) {
+      if (!product) return null
+      return product.id || product.productId
+    },
+
+    getProductLabel(product) {
+      if (!product || typeof product !== 'object') return product || ''
+
+      const name = product.name || product.title || product.productName
+      const id = product.id || product.productId
+
+      return name ? `${name} - #${id}` : `Товар #${id}`
+    },
+
     async moderate(row, status) {
       let comment = row.comment || ''
 
       try {
-        const result = await this.$prompt('Комментарий модерации', 'Модерация товара', {
+        const promptOptions = {
           confirmButtonText: 'Сохранить',
           cancelButtonText: 'Отмена',
           inputValue: comment,
-        })
+        }
+        if (status === 'rejected' || status === 'banned') {
+          promptOptions.inputPattern = /\S+/
+          promptOptions.inputErrorMessage = 'Для отклонения или блокировки нужен комментарий'
+        }
+        const result = await this.$prompt('Комментарий модерации', 'Модерация товара', promptOptions)
         comment = result.value
       } catch (err) {
         return false
@@ -215,6 +279,28 @@ export default {
       return await this.fetchData()
     },
 
+    async handleDelete(id) {
+      try {
+        await this.confirmUpdate('Точно удалить запись модерации?', 'Запись не удалена')
+      } catch (err) {
+        return false
+      }
+
+      try {
+        await this.$apiClient.service('product-moderation').remove(id)
+      } catch (err) {
+        handleApiError(this, err, 'Не удалось удалить запись модерации')
+        return false
+      }
+
+      this.$message({
+        message: 'Запись модерации удалена!',
+        type: 'success',
+      })
+
+      return await this.fetchData()
+    },
+
     onFilterClick() {
       this.page = 1
       this.fetchData()
@@ -234,5 +320,11 @@ export default {
 
 .w-160 {
   width: 160px;
+}
+
+.w-240 {
+  display: inline-block;
+  width: 240px;
+  text-align: left;
 }
 </style>

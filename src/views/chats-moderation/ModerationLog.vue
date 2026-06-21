@@ -36,8 +36,10 @@
       <el-table-column prop="companyId" label="companyId" width="110" />
       <el-table-column prop="moderatorUserId" label="moderatorUserId" width="130" />
       <el-table-column prop="createdAt" label="createdAt" min-width="170" />
-      <el-table-column label="Действия" width="320" fixed="right">
+      <el-table-column label="Действия" width="360" fixed="right">
         <template slot-scope="scope">
+          <el-button size="mini" icon="el-icon-view" @click="openJson(scope.row)" />
+          <el-button size="mini" icon="el-icon-edit" @click="openEdit(scope.row)" />
           <el-button size="mini" @click="goToSource(scope.row)">К сообщению</el-button>
           <el-button size="mini" type="success" @click="updateStatus(scope.row, 'approved')">Одобрить</el-button>
           <el-button size="mini" type="warning" @click="updateStatus(scope.row, 'blocked')">Блок</el-button>
@@ -58,6 +60,38 @@
         @current-change="fetchData"
       />
     </div>
+
+    <el-dialog :visible.sync="jsonDialogVisible" title="JSON записи модерации" width="60%">
+      <pre>{{ selectedJson }}</pre>
+    </el-dialog>
+
+    <el-dialog :visible.sync="formDialogVisible" title="Редактировать запись модерации" width="620px">
+      <el-form label-position="top">
+        <el-form-item label="Статус">
+          <el-select v-model="form.status" class="full-width" placeholder="Статус">
+            <el-option label="Ожидает" value="pending" />
+            <el-option label="Одобрено" value="approved" />
+            <el-option label="Заблокировано" value="blocked" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="Причина">
+          <el-input v-model="form.reason" placeholder="Причина" />
+        </el-form-item>
+        <el-form-item label="Исходный текст">
+          <el-input v-model="form.originalText" :rows="3" type="textarea" />
+        </el-form-item>
+        <el-form-item label="Текст после фильтра">
+          <el-input v-model="form.renderedText" :rows="3" type="textarea" />
+        </el-form-item>
+        <el-form-item label="Найденные слова">
+          <el-input v-model="form.matchedWordsText" placeholder="Через запятую" />
+        </el-form-item>
+      </el-form>
+      <span slot="footer">
+        <el-button @click="formDialogVisible = false">Отмена</el-button>
+        <el-button type="primary" @click="submitEdit">Сохранить</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -85,6 +119,17 @@ export default {
         companyId: null,
         userId: null,
       },
+      jsonDialogVisible: false,
+      selectedJson: '',
+      formDialogVisible: false,
+      form: {
+        id: null,
+        status: '',
+        reason: '',
+        originalText: '',
+        renderedText: '',
+        matchedWordsText: '',
+      },
     }
   },
 
@@ -96,6 +141,23 @@ export default {
     normalizeWords(words) {
       if (Array.isArray(words)) return words.join(', ')
       return words || '-'
+    },
+
+    openJson(row) {
+      this.selectedJson = JSON.stringify(row, null, 2)
+      this.jsonDialogVisible = true
+    },
+
+    openEdit(row) {
+      this.form = {
+        id: row.id,
+        status: row.status || 'pending',
+        reason: row.reason || '',
+        originalText: row.originalText || '',
+        renderedText: row.renderedText || '',
+        matchedWordsText: this.normalizeWords(row.matchedWords) === '-' ? '' : this.normalizeWords(row.matchedWords),
+      }
+      this.formDialogVisible = true
     },
 
     buildQuery() {
@@ -192,6 +254,26 @@ export default {
       }
     },
 
+    async submitEdit() {
+      if (!this.form.id) return
+      try {
+        await chatModerationApi.patchModeration(this.$apiClient, this.form.id, {
+          status: this.form.status,
+          reason: this.form.reason,
+          originalText: this.form.originalText,
+          renderedText: this.form.renderedText,
+          matchedWords: this.form.matchedWordsText
+            ? this.form.matchedWordsText.split(',').map(word => word.trim()).filter(Boolean)
+            : [],
+        })
+        this.$message({ type: 'success', message: 'Запись модерации обновлена' })
+        this.formDialogVisible = false
+        await this.fetchData()
+      } catch (error) {
+        handleApiError(this, error, 'Не удалось сохранить запись модерации')
+      }
+    },
+
     async removeItem(row) {
       try {
         await this.$confirm(`Удалить запись #${row.id}?`, 'Подтверждение', {
@@ -204,7 +286,7 @@ export default {
       }
 
       try {
-        await this.$apiClient.service('chat-message-moderation').remove(row.id)
+        await chatModerationApi.removeModeration(this.$apiClient, row.id)
         this.$message({ type: 'success', message: 'Запись удалена' })
         await this.fetchData()
       } catch (error) {
@@ -223,5 +305,16 @@ export default {
 
 .w-140 {
   width: 140px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+pre {
+  max-height: 65vh;
+  overflow: auto;
+  background: #f7f7f7;
+  padding: 12px;
 }
 </style>

@@ -10,10 +10,24 @@
           <el-option label="Отклонен" value="rejected" />
           <el-option label="Заблокирован" value="banned" />
         </el-select>
-        <el-input v-model.number="filters.truckId" clearable type="number" placeholder="truckId" class="w-140" />
+        <AsyncSelect
+          :value="filters.truckId"
+          :reduce="getTruckId"
+          :bind="{ getOptionLabel: getTruckOptionLabel }"
+          class="w-240"
+          clearable
+          service="trucks"
+          label="name"
+          placeholder="Грузовик"
+          @value-changed="v => (filters.truckId = v)"
+        />
         <el-button @click="onFilterClick"> Применить </el-button>
       </div>
-      <div class="add-button" />
+      <div class="add-button">
+        <router-link :to="{ name: 'addTruckModeration' }">
+          <el-button type="success" icon="el-icon-plus" circle />
+        </router-link>
+      </div>
     </div>
     <el-alert v-if="notAuthenticated" :closable="false" type="error" title="401: требуется авторизация" show-icon />
     <el-alert v-else-if="forbidden" :closable="false" type="error" title="403: доступ запрещен" show-icon />
@@ -71,9 +85,30 @@
         </template>
       </el-table-column>
 
-      <el-table-column align="center" fixed="right" label="Действия" width="340">
+      <el-table-column align="center" fixed="right" label="Действия" width="380">
         <template slot-scope="scope">
           <div class="el-button-group">
+            <router-link
+              :to="{ name: 'readTruckModeration', params: { id: scope.row.id } }"
+              tag="button"
+              class="el-button el-button--default el-button--small"
+            >
+              <i class="el-icon-document" />
+            </router-link>
+            <router-link
+              :to="{ name: 'editTruckModeration', params: { id: scope.row.id } }"
+              tag="button"
+              class="el-button el-button--default el-button--small"
+            >
+              <i class="el-icon-edit" />
+            </router-link>
+            <router-link
+              :to="{ name: 'readTruck', params: { id: scope.row.truckId } }"
+              tag="button"
+              class="el-button el-button--default el-button--small"
+            >
+              <i class="el-icon-view" />
+            </router-link>
             <el-button size="small" type="success" @click="moderate(scope.row, 'approved')">Одобрить</el-button>
             <el-button size="small" type="warning" @click="moderate(scope.row, 'rejected')">Отклонить</el-button>
             <el-button size="small" type="danger" @click="moderate(scope.row, 'banned')">Блок</el-button>
@@ -101,9 +136,14 @@
 <script>
 import confirmUpdate from '@/mixins/confirmUpdate'
 import { handleApiError } from '@/utils/api-error'
+import AsyncSelect from '@/components/AsyncSelect'
 
 export default {
   name: 'TruckModeration',
+
+  components: {
+    AsyncSelect,
+  },
 
   mixins: [confirmUpdate],
 
@@ -181,6 +221,18 @@ export default {
       return truck.name || truck.title || truck.model || truck.number || `#${truck.id}`
     },
 
+    getTruckId(truck) {
+      if (!truck) return null
+      return truck.id || truck.truckId
+    },
+
+    getTruckOptionLabel(truck) {
+      if (!truck || typeof truck !== 'object') return truck || ''
+
+      const id = truck.id || truck.truckId
+      return `${this.getTruckName(truck)} - #${id}`
+    },
+
     getModerationLabel(status) {
       const statuses = {
         pending: 'Ожидает',
@@ -196,11 +248,16 @@ export default {
       let comment = row.comment || ''
 
       try {
-        const result = await this.$prompt('Комментарий модерации', 'Модерация грузовика', {
+        const promptOptions = {
           confirmButtonText: 'Сохранить',
           cancelButtonText: 'Отмена',
           inputValue: comment,
-        })
+        }
+        if (status === 'rejected' || status === 'banned') {
+          promptOptions.inputPattern = /\S+/
+          promptOptions.inputErrorMessage = 'Для отклонения или блокировки нужен комментарий'
+        }
+        const result = await this.$prompt('Комментарий модерации', 'Модерация грузовика', promptOptions)
         comment = result.value
       } catch (err) {
         return false
@@ -262,5 +319,11 @@ export default {
 <style scoped>
 .w-140 {
   width: 140px;
+}
+
+.w-240 {
+  display: inline-block;
+  width: 240px;
+  text-align: left;
 }
 </style>

@@ -7,7 +7,7 @@
     :options="addresses"
     :fetch-data="fetchAddresses"
     :taggable="taggable"
-    :clearable="false"
+    :clearable="clearable"
     :infinite-loading="false"
     :placeholder="placeholder"
     @search="resetAddresses"
@@ -37,8 +37,12 @@ export default {
       default: '',
     },
     value: {
-      type: Array | Number,
+      type: [Array, Number, Object, String],
       default: () => [],
+    },
+    clearable: {
+      type: Boolean,
+      default: false,
     },
     bind: {
       type: Object,
@@ -51,6 +55,18 @@ export default {
     additionalQuery: {
       type: Object,
       default: () => ({}),
+    },
+    queryLimit: {
+      type: Number,
+      default: -1,
+    },
+    remoteSearch: {
+      type: Boolean,
+      default: true,
+    },
+    searchParam: {
+      type: String,
+      default: 'search',
     },
   },
 
@@ -75,11 +91,11 @@ export default {
   methods: {
     async fetchAddresses() {
       const query = {
-        $limit: -1,
+        $limit: this.queryLimit,
         ...this.additionalQuery,
       }
-      if (this.addressSearch) {
-        query.search = this.addressSearch
+      if (this.addressSearch && this.remoteSearch && this.searchParam) {
+        query[this.searchParam] = this.addressSearch
       }
       const response = await this.$apiClient.service(this.service).find({
         query,

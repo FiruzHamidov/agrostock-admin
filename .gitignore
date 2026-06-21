@@ -15,3 +15,6 @@ package-lock.json
 *.sln
 
 pull.sh
+/dist/
+/dist/*
+dist/

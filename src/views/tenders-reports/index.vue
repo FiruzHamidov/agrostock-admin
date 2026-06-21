@@ -3,7 +3,31 @@
     <div
       class="top-menu el-col el-col-24 el-col-xs-24 el-col-sm-24 el-col-md-24 tp-text--right mb-4"
     >
-      <div class="filters" />
+      <div class="filters reports-filters">
+        <el-input v-model="filters.search" clearable placeholder="Поиск по описанию" />
+        <el-input v-model.number="filters.tenderId" clearable type="number" placeholder="ID торгов" />
+        <el-input v-model.number="filters.companyId" clearable type="number" placeholder="ID отправителя" />
+        <el-select v-model="filters.type" clearable placeholder="Тип жалобы">
+          <el-option label="Общий" value="common" />
+          <el-option label="Спам" value="spam" />
+        </el-select>
+        <el-select v-model="filters.status" clearable placeholder="Статус">
+          <el-option label="Новая" value="new" />
+          <el-option label="В работе" value="in_review" />
+          <el-option label="Рассмотрена" value="resolved" />
+          <el-option label="Отклонена" value="rejected" />
+        </el-select>
+        <el-date-picker
+          v-model="dateRange"
+          type="daterange"
+          range-separator="-"
+          start-placeholder="Дата от"
+          end-placeholder="Дата до"
+          value-format="yyyy-MM-dd"
+        />
+        <el-button @click="resetFilters">Сбросить</el-button>
+        <el-button type="primary" @click="onFilterClick">Применить</el-button>
+      </div>
       <div class="add-button" />
     </div>
     <el-table
@@ -63,7 +87,21 @@
       <el-table-column align="center" fixed="right" label="Действия" width="200">
         <template slot-scope="scope">
           <div class="el-button-group">
-            <el-button v-if="scope.row.tender && scope.row.tender.status !== 'banned'" size="small" @click="tenderBan(scope.row.tenderId)">
+            <router-link
+              :to="{ name: 'readTendersReport', params: { id: scope.row.id } }"
+              tag="button"
+              class="el-button el-button--default el-button--small"
+            >
+              <i class="el-icon-view" />
+            </router-link>
+            <router-link
+              :to="{ name: 'editTendersReport', params: { id: scope.row.id } }"
+              tag="button"
+              class="el-button el-button--default el-button--small"
+            >
+              <i class="el-icon-edit" />
+            </router-link>
+            <el-button v-if="scope.row.tender && scope.row.tender.status !== 'banned'" size="small" @click="tenderBan(scope.row)">
               Заблокировать
             </el-button>
             <el-button v-else size="small">
@@ -91,6 +129,7 @@
 
 <script>
 import confirmUpdate from '@/mixins/confirmUpdate'
+import { handleApiError } from '@/utils/api-error'
 
 export default {
   name: 'TendersReports',
@@ -100,7 +139,14 @@ export default {
   data() {
     return {
       tendersReports: [],
-      filters: {},
+      filters: {
+        search: '',
+        tenderId: null,
+        companyId: null,
+        type: '',
+        status: '',
+      },
+      dateRange: [],
       isLoading: true,
       total: 1,
       limit: 10,
@@ -130,9 +176,19 @@ export default {
           query[key] = this.filters[key]
         }
       })
-      const response = await tendersReportsService.find({
-        query,
-      })
+      if (this.dateRange && this.dateRange.length === 2) {
+        query.dateFrom = this.dateRange[0]
+        query.dateTo = this.dateRange[1]
+      }
+
+      let response
+      try {
+        response = await tendersReportsService.find({ query })
+      } catch (err) {
+        handleApiError(this, err, 'Не удалось получить список жалоб на торги')
+        this.isLoading = false
+        return false
+      }
 
       const { data, total } = response
 
@@ -162,7 +218,12 @@ export default {
         return false
       }
 
-      await this.$apiClient.service('tenders-reports').remove(id)
+      try {
+        await this.$apiClient.service('tenders-reports').remove(id)
+      } catch (err) {
+        handleApiError(this, err, 'Не удалось удалить жалобу')
+        return false
+      }
       this.$message({
         message: 'Жалоба удалена!',
         type: 'success',
@@ -171,14 +232,43 @@ export default {
       return await this.fetchData()
     },
 
-    async tenderBan(tenderId) {
+    async tenderBan(row) {
+      const tenderId = row.tenderId
+      let reason = ''
+
+      try {
+        const result = await this.$prompt('Причина блокировки торгов', 'Решение по жалобе', {
+          confirmButtonText: 'Заблокировать',
+          cancelButtonText: 'Отмена',
+          inputPattern: /\S+/,
+          inputErrorMessage: 'Укажите причину решения',
+        })
+        reason = result.value
+      } catch (err) {
+        return false
+      }
+
       try {
         await this.confirmUpdate('Точно заблокировать торги?', 'Торги не заблокированы')
       } catch (err) {
         return false
       }
 
-      await this.$apiClient.service('tenders').patch(tenderId, { status: 'banned' })
+      try {
+        await this.$apiClient.service('tenders').patch(tenderId, {
+          status: 'banned',
+          moderationReason: reason,
+        })
+        await this.$apiClient.service('tenders-reports').patch(row.id, {
+          status: 'resolved',
+          resolution: 'tender_banned',
+          resolutionComment: reason,
+        })
+      } catch (err) {
+        handleApiError(this, err, 'Не удалось применить решение по жалобе')
+        return false
+      }
+
       this.$message({
         message: 'Торги заблокированы!',
         type: 'success',
@@ -191,6 +281,32 @@ export default {
       this.page = 1
       this.fetchData()
     },
+
+    resetFilters() {
+      this.filters = {
+        search: '',
+        tenderId: null,
+        companyId: null,
+        type: '',
+        status: '',
+      }
+      this.dateRange = []
+      this.onFilterClick()
+    },
   },
 }
 </script>
+
+<style scoped>
+.reports-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.reports-filters .el-input,
+.reports-filters .el-select {
+  width: 180px;
+}
+</style>

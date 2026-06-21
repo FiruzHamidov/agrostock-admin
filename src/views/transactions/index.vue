@@ -1,5 +1,37 @@
 <template>
   <div class="app-container">
+    <div class="top-menu el-col el-col-24 el-col-xs-24 el-col-sm-24 el-col-md-24 tp-text--right mb-4">
+      <div class="filters transactions-filters">
+        <el-select v-model="filters.type" clearable placeholder="Тип">
+          <el-option v-for="(label, value) in types" :key="value" :label="label" :value="value" />
+        </el-select>
+        <el-select v-model="filters.transactionType" clearable placeholder="Тип транзакции">
+          <el-option label="Пополнение" value="replenishment" />
+          <el-option label="Списание" value="write-off" />
+        </el-select>
+        <el-select v-model="filters.status" clearable placeholder="Статус">
+          <el-option v-for="(label, value) in statuses" :key="value" :label="label" :value="value" />
+        </el-select>
+        <el-input v-model.number="filters.userId" clearable type="number" placeholder="userId" />
+        <el-input v-model.number="filters.companyId" clearable type="number" placeholder="companyId" />
+        <el-input v-model.number="filters.dealId" clearable type="number" placeholder="dealId" />
+        <el-date-picker
+          v-model="dateRange"
+          type="daterange"
+          range-separator="-"
+          start-placeholder="Дата от"
+          end-placeholder="Дата до"
+          value-format="yyyy-MM-dd"
+        />
+        <el-button @click="resetFilters">Сбросить</el-button>
+        <el-button type="primary" @click="onFilterClick">Применить</el-button>
+      </div>
+      <div class="add-button">
+        <router-link :to="{ name: 'addTransaction' }">
+          <el-button type="success" icon="el-icon-plus" circle />
+        </router-link>
+      </div>
+    </div>
     <el-table
       v-loading="isLoading"
       :data="transactions"
@@ -38,6 +70,29 @@
           {{ statuses[scope.row.status] }}
         </template>
       </el-table-column>
+      <el-table-column align="center" fixed="right" label="Действия" width="160">
+        <template slot-scope="scope">
+          <div class="el-button-group">
+            <router-link
+              :to="{ name: 'readTransaction', params: { id: scope.row.id } }"
+              tag="button"
+              class="el-button el-button--default el-button--small"
+            >
+              <i class="el-icon-view" />
+            </router-link>
+            <router-link
+              :to="{ name: 'editTransaction', params: { id: scope.row.id } }"
+              tag="button"
+              class="el-button el-button--default el-button--small"
+            >
+              <i class="el-icon-edit" />
+            </router-link>
+            <el-button size="small" type="danger" @click="handleDelete(scope.row.id)">
+              <i class="el-icon-delete" />
+            </el-button>
+          </div>
+        </template>
+      </el-table-column>
     </el-table>
     <el-pagination
       :current-page.sync="page"
@@ -54,6 +109,8 @@
 
 <script>
 import moment from 'moment'
+import confirmUpdate from '@/mixins/confirmUpdate'
+import { handleApiError } from '@/utils/api-error'
 
 export default {
   name: 'Transactions',
@@ -67,10 +124,20 @@ export default {
     },
   },
 
+  mixins: [confirmUpdate],
+
   data() {
     return {
       transactions: [],
-      filters: {},
+      filters: {
+        type: '',
+        transactionType: '',
+        status: '',
+        userId: null,
+        companyId: null,
+        dealId: null,
+      },
+      dateRange: [],
       isLoading: true,
       total: 1,
       limit: 10,
@@ -84,6 +151,7 @@ export default {
       statuses: {
         wait: 'В ожидание',
         active: 'Активен',
+        error: 'Ошибка',
         cancelled: 'Отменен',
         done: 'Завершен',
       }
@@ -112,9 +180,19 @@ export default {
           query[key] = this.filters[key]
         }
       })
-      const response = await transactionsService.find({
-        query,
-      })
+      if (this.dateRange && this.dateRange.length === 2) {
+        query.dateFrom = this.dateRange[0]
+        query.dateTo = this.dateRange[1]
+      }
+
+      let response
+      try {
+        response = await transactionsService.find({ query })
+      } catch (err) {
+        handleApiError(this, err, 'Не удалось получить список транзакций')
+        this.isLoading = false
+        return false
+      }
 
       const { data, total } = response
 
@@ -134,6 +212,60 @@ export default {
       this.limit = pageSize
       this.fetchData()
     },
+
+    onFilterClick() {
+      this.page = 1
+      this.fetchData()
+    },
+
+    resetFilters() {
+      this.filters = {
+        type: '',
+        transactionType: '',
+        status: '',
+        userId: null,
+        companyId: null,
+        dealId: null,
+      }
+      this.dateRange = []
+      this.onFilterClick()
+    },
+
+    async handleDelete(id) {
+      try {
+        await this.confirmUpdate('Точно удалить транзакцию?', 'Транзакция не удалена')
+      } catch (err) {
+        return false
+      }
+
+      try {
+        await this.$apiClient.service('transactions').remove(id)
+      } catch (err) {
+        handleApiError(this, err, 'Не удалось удалить транзакцию')
+        return false
+      }
+
+      this.$message({
+        message: 'Транзакция удалена!',
+        type: 'success',
+      })
+
+      return await this.fetchData()
+    },
   },
 }
 </script>
+
+<style scoped>
+.transactions-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.transactions-filters .el-input,
+.transactions-filters .el-select {
+  width: 160px;
+}
+</style>

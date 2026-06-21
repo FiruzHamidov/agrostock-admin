@@ -3,6 +3,12 @@
 Актуально на 2026-05-05.  
 Бэкенд: FeathersJS REST.
 
+Основной источник по всем маршрутам, ролям, payload и ответам:
+
+- [docs/api-complete-contract.md](/Users/sarvat/WebstormProjects/agrostock-backend/docs/api-complete-contract.md)
+
+Для админки добавляются обязательные ограничители доступа (`admin`, `moderator`, `superadmin`) и разбор бизнес-ответов из единого контракта.
+
 ## Базовые правила
 
 - Авторизация: `Authorization: Bearer <JWT>`
@@ -300,6 +306,122 @@ Authorization: Bearer <JWT>
 - После изменения модерации синхронизируется `trucks.moderationStatus` и `trucks.moderationComment`.
 - Для `rejected`/`banned` грузовик автоматически переводится в `status = offline`.
 
+### Контракт `/trucks` для админки (`#/trucks/edit/:id`)
+
+- `GET /trucks/:id` всегда возвращает плоский объект в одном формате (без оберток `{ truck }`/`{ data }`).
+- `PATCH /trucks/:id` принимает канонические поля и legacy-алиасы.
+- Канонический ответ использует `moderationComment`; для обратной совместимости также дублируется `comment`.
+
+Канонические поля:
+
+- `id`
+- `name`
+- `number`
+- `owner_name`
+- `contacts`
+- `brand`
+- `model`
+- `year`
+- `bodyType`
+- `capacity`
+- `volume`
+- `countryId`
+- `cityId`
+- `address`
+- `status` (`active | offline | banned`)
+- `moderationStatus` (`pending | approved | rejected | banned`)
+- `moderationComment` (string, может быть пустой)
+- `country` (`object | null`)
+- `city` (`object | null`)
+- `photoId` (`integer | null`)
+- `photosIds` (`number[]`)
+- `photo` (`{ id, path } | null`, optional)
+- `photos` (`[{ id, path }]`, optional)
+
+Legacy-алиасы (вход PATCH/create):
+
+- `comment` -> `moderationComment` (если переданы оба, приоритет у `moderationComment`)
+- `transport_type` -> `bodyType`
+- `location` -> `address`
+- `country_id` -> `countryId`
+- `city_id` -> `cityId`
+- `name`/`vehicle_name` поддерживаются как совместимые алиасы для названия транспорта
+- `owner_name`/`ownerName`/`contactName` поддерживаются как алиасы для контактного имени
+- `contacts`/`contactPhone` поддерживаются как алиасы для контактного номера
+- `photoId` — канонически для одного фото, `photosIds` — канонически для нескольких фото.
+- `status: online` поддерживается как алиас и нормализуется в `active`
+
+Дефолты:
+
+- `status: active`
+- `moderationStatus: pending`
+- `moderationComment: ''`
+
 ## Примечание
 
 Часть сервисов имеет дополнительную бизнес-авторизацию в hooks (например, доступ только к своим данным, ограничения по операциям, кастомные query-параметры). Для админ-панели этого списка достаточно как полного реестра доступных API путей.
+
+## Products Offers (`/products-offers`)
+
+### Create (`POST /products-offers`) schema
+
+- `productId`: `number` (required)
+- `price`: `number|string` (required, must be `> 0`)
+- `batchSize`: `number|string` (required)
+- `delivery`: `'pickup' | 'delivery'` (required)
+- `isDeliveryIncludesInPrice`: `boolean` (optional)
+- `deliveryPrice`: `number|string` (optional)
+- `countryId`: `number` (optional)
+- `cityId`: `number` (optional)
+- `address`: `string` (optional)
+- `isSafe`: `boolean` (optional)
+
+### Patch (`PATCH /products-offers/:id`) schema
+
+- `price`: `number|string` (optional, if present must be `> 0`)
+- Остальные поля сохраняют прежнее поведение и совместимость.
+
+### Validation
+
+- На `create` поле `price` обязательно.
+- `price` может быть строкой, но будет приведен к `number`, если это валидное число.
+- Невалидный `price` или `price <= 0` -> `400 BadRequest`.
+
+### Create example
+
+```json
+{
+  "productId": 101,
+  "price": "1250.50",
+  "batchSize": "1000",
+  "delivery": "pickup",
+  "isDeliveryIncludesInPrice": false,
+  "deliveryPrice": "0",
+  "countryId": 1,
+  "cityId": 15,
+  "address": "Dushanbe",
+  "isSafe": false
+}
+```
+
+### Response example (`get/find/create/patch`)
+
+```json
+{
+  "id": 77,
+  "productId": 101,
+  "companyId": 55,
+  "price": "1250.50",
+  "batchSize": "1000.00",
+  "delivery": "pickup",
+  "isDeliveryIncludesInPrice": false,
+  "deliveryPrice": "0.00",
+  "countryId": 1,
+  "cityId": 15,
+  "address": "Dushanbe",
+  "isSafe": false,
+  "status": "new",
+  "createdAt": "2026-05-06T00:00:00.000Z",
+  "updatedAt": "2026-05-06T00:00:00.000Z"
+}
+```

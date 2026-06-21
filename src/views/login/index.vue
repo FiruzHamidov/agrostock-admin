@@ -7,7 +7,7 @@
       class="login-form" 
       auto-complete="on" 
       label-position="left">
-      <h3 class="title">AGROSTOCK admin panel</h3>
+      <h3 class="title">AGROSTOCK админ-панель</h3>
       <el-form-item prop="username">
         <span class="svg-container">
           <svg-icon icon-class="user" />
@@ -17,7 +17,7 @@
           name="username" 
           type="email" 
           auto-complete="on" 
-          placeholder="email" />
+          placeholder="E-mail" />
       </el-form-item>
       <el-form-item prop="password">
         <span class="svg-container">
@@ -28,7 +28,7 @@
           v-model="loginForm.password"
           name="password"
           auto-complete="on"
-          placeholder="password"
+          placeholder="Пароль"
           @keyup.enter.native="handleLogin" />
         <span 
           class="show-pwd" 
@@ -36,13 +36,16 @@
           <svg-icon icon-class="eye" />
         </span>
       </el-form-item>
+      <el-form-item v-if="loginError">
+        <el-alert :closable="false" :title="loginError" type="error" show-icon />
+      </el-form-item>
       <el-form-item>
         <el-button 
           :loading="loading" 
           type="primary" 
           style="width:100%;" 
           @click.native.prevent="handleLogin">
-          Sign in
+          Войти
         </el-button>
       </el-form-item>
     </el-form>
@@ -53,16 +56,21 @@
 export default {
   name: 'Login',
   data() {
-    // const validateUsername = (rule, value, callback) => {
-    //   if (!isvalidUsername(value)) {
-    //     callback(new Error('请输入正确的用户名'))
-    //   } else {
-    //     callback()
-    //   }
-    // }
+    const validateUsername = (rule, value, callback) => {
+      const normalized = String(value || '').trim()
+      if (!normalized) {
+        callback(new Error('Введите email'))
+        return
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
+        callback(new Error('Введите корректный email'))
+        return
+      }
+      callback()
+    }
     const validatePass = (rule, value, callback) => {
-      if (value.length < 5) {
-        callback(new Error('密码不能小于5位'))
+      if (!value || value.length < 5) {
+        callback(new Error('Пароль должен быть не короче 5 символов'))
       } else {
         callback()
       }
@@ -73,12 +81,13 @@ export default {
         password: '',
       },
       loginRules: {
-        // username: [{ required: true, trigger: 'blur', validator: validateUsername }],
+        username: [{ required: true, trigger: 'blur', validator: validateUsername }],
         password: [{ required: true, trigger: 'blur', validator: validatePass }],
       },
       loading: false,
       pwdType: 'password',
       redirect: undefined,
+      loginError: '',
     }
   },
   watch: {
@@ -113,14 +122,35 @@ export default {
           })
           await this.$store.dispatch('user/setToken', accessToken)
 
+          this.loginError = ''
           this.loading = false
           this.$router.push({ path: this.redirect || '/' })
         } catch (e) {
           this.loading = false
+          const message = this.getLoginErrorMessage(e)
+          this.loginError = message
+          if (this.$message && this.$message.error) {
+            this.$message.error(message)
+          }
         }
       } else {
         return false
       }
+    },
+    getLoginErrorMessage(error) {
+      const normalize = err => {
+        if (!err || typeof err !== 'object') return 'Не удалось авторизоваться'
+        if (err.message && typeof err.message === 'string') return err.message
+        if (Number(err.code) === 401) return 'Неверный логин или пароль'
+        if (err.name === 'NotAuthenticated') return 'Неверный логин или пароль'
+        return 'Не удалось авторизоваться'
+      }
+
+      if (Array.isArray(error)) {
+        return normalize(error[0])
+      }
+
+      return normalize(error)
     },
   },
 }

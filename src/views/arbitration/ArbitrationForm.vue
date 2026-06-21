@@ -234,6 +234,7 @@ import validateForm from '@/mixins/validateForm'
 import confirmUpdate from '@/mixins/confirmUpdate'
 import AsyncSelect from '@/components/AsyncSelect'
 import DocumentView from '@/components/DocumentView'
+import { handleApiError } from '@/utils/api-error'
 
 import { batchUnitSizes, currencies, currencySymbols } from '@/utils/variables'
 
@@ -299,6 +300,7 @@ export default {
         fileId: null,
         file: {},
       },
+      chatCreatedHandler: null,
     }
   },
 
@@ -346,15 +348,18 @@ export default {
       this.scrollToBottom()
     }, 800)
 
-    this.$apiClient.service('chats-messages').on('created', message => {
+    this.chatCreatedHandler = message => {
       if (message.chatId === this.chat.id) {
         this.messages.push(message)
       }
-    })
+    }
+    this.$apiClient.service('chats-messages').on('created', this.chatCreatedHandler)
   },
 
   destroyed() {
-    this.$apiClient.service('chats-messages').removeListener('created')
+    if (this.chatCreatedHandler) {
+      this.$apiClient.service('chats-messages').removeListener('created', this.chatCreatedHandler)
+    }
   },
 
   methods: {
@@ -381,15 +386,47 @@ export default {
 
     async fetchData() {
       const arbitrationsService = this.$apiClient.service('deals')
-      const res = await arbitrationsService.get(this.$route.params.id)
+      let res
+      try {
+        res = await arbitrationsService.get(this.$route.params.id)
+      } catch (err) {
+        handleApiError(this, err, 'Не удалось получить арбитраж')
+        return false
+      }
 
       this.form = res
       this.changeActiveStep(res.stageStatus)
 
-      const chatRes = await this.$apiClient
-        .service('chat-info')
-        .find({ query: { companyId: res.buyerId, partnerId: res.sellerId } })
-      this.chat = chatRes.chat
+      try {
+        const chatRes = await this.$apiClient
+          .service('chat-info')
+          .find({ query: { companyId: res.buyerId, partnerId: res.sellerId } })
+        this.chat = chatRes.chat
+      } catch (err) {
+        handleApiError(this, err, 'Не удалось получить чат арбитража')
+      }
+    },
+
+    getPatchPayload() {
+      const fields = [
+        'batchSize',
+        'batchSizeUnit',
+        'countryId',
+        'cityId',
+        'address',
+        'stageStatus',
+        'status',
+        'resolution',
+        'resolutionComment',
+        'compensationAmount',
+      ]
+
+      return fields.reduce((payload, field) => {
+        if (Object.prototype.hasOwnProperty.call(this.form, field)) {
+          payload[field] = this.form[field]
+        }
+        return payload
+      }, {})
     },
 
     async onEdit() {
@@ -408,14 +445,9 @@ export default {
       const arbitrationsService = this.$apiClient.service('deals')
 
       try {
-        await arbitrationsService.patch(this.$route.params.id, {
-          ...this.form,
-        })
+        await arbitrationsService.patch(this.$route.params.id, this.getPatchPayload())
       } catch (err) {
-        this.$message({
-          message: err.message,
-          type: 'error',
-        })
+        handleApiError(this, err, 'Не удалось обновить арбитраж')
         return false
       }
 
@@ -443,19 +475,25 @@ export default {
     },
 
     async addMessages() {
-      const messages = await this.$apiClient.service('chats-messages').find({
-        query: {
-          $limit: this.messagesPagination.limit,
-          $skip:
-            this.messagesPagination.page - 1 > 0
-              ? (this.messagesPagination.page - 1) * this.messagesPagination.limit
-              : 0,
-          chatId: this.chat.id,
-          $sort: {
-            createdAt: -1,
+      let messages
+      try {
+        messages = await this.$apiClient.service('chats-messages').find({
+          query: {
+            $limit: this.messagesPagination.limit,
+            $skip:
+              this.messagesPagination.page - 1 > 0
+                ? (this.messagesPagination.page - 1) * this.messagesPagination.limit
+                : 0,
+            chatId: this.chat.id,
+            $sort: {
+              createdAt: -1,
+            },
           },
-        },
-      })
+        })
+      } catch (err) {
+        handleApiError(this, err, 'Не удалось загрузить сообщения арбитража')
+        return false
+      }
 
       this.messages = [...messages.data.reverse(), ...this.messages]
 
@@ -547,20 +585,32 @@ export default {
         this.sendMessage.fileId = data[0].id
         this.sendMessage.file = data[0]
       } catch (e) {
-        // silent upload error to keep old behavior
+        handleApiError(this, e, 'Не удалось загрузить файл')
+        this.sendMessage.fileId = null
+        this.sendMessage.file = {}
       }
     },
 
     async onSendMessage() {
-      if (!this.sendMessage.text) {
+      if (!this.chat || !this.chat.id) {
+        this.$message({ message: 'Чат арбитража не загружен', type: 'error' })
         return false
       }
 
-      await this.$apiClient.service('chats-messages').create({
-        chatId: this.chat.id,
-        text: this.sendMessage.text,
-        fileId: this.sendMessage.fileId,
-      })
+      if (!this.sendMessage.text && !this.sendMessage.fileId) {
+        return false
+      }
+
+      try {
+        await this.$apiClient.service('chats-messages').create({
+          chatId: this.chat.id,
+          text: this.sendMessage.text,
+          fileId: this.sendMessage.fileId,
+        })
+      } catch (err) {
+        handleApiError(this, err, 'Не удалось отправить сообщение')
+        return false
+      }
 
       this.sendMessage = {
         text: '',

@@ -88,7 +88,7 @@ export default {
     },
 
     deleteLogo() {
-      this.$emit('on-delete', null)
+      this.$emit('on-delete', this.id)
     },
   },
 }
@@ -123,6 +123,10 @@ export default {
   width: 178px;
   height: 178px;
   display: block;
+  border-radius: 6px;
+  object-fit: cover;
+  object-position: center;
+  background: #f5f7fa;
 }
 .uploader-container {
   display: flex;

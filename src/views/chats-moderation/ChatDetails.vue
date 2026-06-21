@@ -1,6 +1,9 @@
 <template>
   <div class="app-container">
-    <h2>Детали чата #{{ chatId }}</h2>
+    <div class="header-row">
+      <h2>Детали чата #{{ chatId }}</h2>
+      <el-button type="primary" icon="el-icon-plus" @click="openCreateMessage">Добавить сообщение</el-button>
+    </div>
 
     <el-alert v-if="notAuthenticated" :closable="false" type="error" title="401: требуется авторизация" show-icon />
     <el-alert v-else-if="forbidden" :closable="false" type="error" title="403: доступ запрещен" show-icon />
@@ -25,9 +28,10 @@
       <el-table-column prop="moderationStatus" label="Модерация" min-width="140" />
       <el-table-column prop="isBlocked" label="Блок" width="100" />
       <el-table-column prop="createdAt" label="Дата" min-width="170" />
-      <el-table-column label="Действия" width="340" fixed="right">
+      <el-table-column label="Действия" width="360" fixed="right">
         <template slot-scope="scope">
-          <el-button size="mini" @click="showJson(scope.row)">Открыть JSON</el-button>
+          <el-button size="mini" icon="el-icon-view" @click="showJson(scope.row)" />
+          <el-button size="mini" icon="el-icon-edit" @click="openEditMessage(scope.row)" />
           <el-button size="mini" type="warning" @click="toggleBlock(scope.row)">
             {{ scope.row.isBlocked ? 'Разблокировать' : 'Заблокировать' }}
           </el-button>
@@ -49,6 +53,42 @@
 
     <el-dialog :visible.sync="jsonDialogVisible" title="JSON сообщения" width="60%">
       <pre>{{ selectedJson }}</pre>
+    </el-dialog>
+
+    <el-dialog :visible.sync="formDialogVisible" :title="form.id ? 'Редактировать сообщение' : 'Добавить сообщение'" width="560px">
+      <el-form label-position="top">
+        <el-form-item label="Текст">
+          <el-input v-model="form.text" :rows="4" type="textarea" placeholder="Введите сообщение" />
+        </el-form-item>
+        <el-form-item label="fileId">
+          <el-input v-model.number="form.fileId" clearable type="number" placeholder="Опционально" />
+        </el-form-item>
+        <template v-if="form.id">
+          <el-form-item label="Тип">
+            <el-select v-model="form.type" clearable class="full-width" placeholder="Тип">
+              <el-option label="system" value="system" />
+              <el-option label="company" value="company" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="Статус модерации">
+            <el-select v-model="form.moderationStatus" clearable class="full-width" placeholder="Статус">
+              <el-option label="Ожидает" value="pending" />
+              <el-option label="Одобрено" value="approved" />
+              <el-option label="Заблокировано" value="blocked" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="Прочитано">
+            <el-switch v-model="form.isRead" />
+          </el-form-item>
+          <el-form-item label="Заблокировано">
+            <el-switch v-model="form.isBlocked" />
+          </el-form-item>
+        </template>
+      </el-form>
+      <span slot="footer">
+        <el-button @click="formDialogVisible = false">Отмена</el-button>
+        <el-button type="primary" @click="submitMessageForm">Сохранить</el-button>
+      </span>
     </el-dialog>
   </div>
 </template>
@@ -76,6 +116,8 @@ export default {
       },
       jsonDialogVisible: false,
       selectedJson: '',
+      formDialogVisible: false,
+      form: this.getEmptyForm(),
     }
   },
 
@@ -101,6 +143,18 @@ export default {
   },
 
   methods: {
+    getEmptyForm() {
+      return {
+        id: null,
+        text: '',
+        fileId: '',
+        type: '',
+        moderationStatus: '',
+        isRead: false,
+        isBlocked: false,
+      }
+    },
+
     async bootstrap() {
       await Promise.all([this.fetchChat(), this.fetchMessages()])
     },
@@ -166,6 +220,67 @@ export default {
       this.jsonDialogVisible = true
     },
 
+    openCreateMessage() {
+      this.form = this.getEmptyForm()
+      this.formDialogVisible = true
+    },
+
+    openEditMessage(message) {
+      this.form = {
+        id: message.id,
+        text: message.text || '',
+        fileId: message.fileId || '',
+        type: message.type || '',
+        moderationStatus: message.moderationStatus || '',
+        isRead: !!message.isRead,
+        isBlocked: !!message.isBlocked,
+      }
+      this.formDialogVisible = true
+    },
+
+    buildMessagePayload() {
+      const payload = {
+        text: this.form.text,
+      }
+
+      if (!this.form.id) {
+        payload.chatId = this.chatId
+      }
+      if (this.form.fileId) {
+        payload.fileId = this.form.fileId
+      }
+      if (this.form.id) {
+        payload.type = this.form.type
+        payload.moderationStatus = this.form.moderationStatus
+        payload.isRead = this.form.isRead
+        payload.isBlocked = this.form.isBlocked
+      }
+
+      return payload
+    },
+
+    async submitMessageForm() {
+      if (!this.form.text || !this.form.text.trim()) {
+        this.$message({ type: 'warning', message: 'Заполните текст сообщения' })
+        return
+      }
+
+      try {
+        const payload = this.buildMessagePayload()
+        if (this.form.id) {
+          await chatModerationApi.patchChatMessage(this.$apiClient, this.form.id, payload)
+          this.$message({ type: 'success', message: 'Сообщение обновлено' })
+        } else {
+          await chatModerationApi.createChatMessage(this.$apiClient, payload)
+          this.$message({ type: 'success', message: 'Сообщение создано' })
+        }
+        this.formDialogVisible = false
+        await this.fetchMessages()
+      } catch (error) {
+        handleApiError(this, error, 'Не удалось сохранить сообщение')
+      }
+    },
+
     async deleteMessage(message) {
       try {
         await this.$confirm('Удалить сообщение? Действие необратимо.', 'Подтверждение', {
@@ -229,8 +344,20 @@ export default {
   gap: 8px;
 }
 
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
 .mb-3 {
   margin-bottom: 12px;
+}
+
+.full-width {
+  width: 100%;
 }
 
 .pager {

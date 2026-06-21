@@ -14,9 +14,10 @@
       <el-table-column prop="isActive" label="Активно" width="100" />
       <el-table-column prop="createdByUserId" label="Кем создано" width="140" />
       <el-table-column prop="createdAt" label="Дата" min-width="170" />
-      <el-table-column label="Действия" width="280" fixed="right">
+      <el-table-column label="Действия" width="320" fixed="right">
         <template slot-scope="scope">
-          <el-button size="mini" @click="openEdit(scope.row)">Редактировать</el-button>
+          <el-button size="mini" icon="el-icon-view" @click="openJson(scope.row)" />
+          <el-button size="mini" icon="el-icon-edit" @click="openEdit(scope.row)" />
           <el-button size="mini" type="warning" @click="toggleActive(scope.row)">
             {{ scope.row.isActive ? 'Деактивировать' : 'Активировать' }}
           </el-button>
@@ -39,6 +40,10 @@
         <el-button type="primary" @click="submitForm">Сохранить</el-button>
       </span>
     </el-dialog>
+
+    <el-dialog :visible.sync="jsonDialogVisible" title="JSON стоп-слова" width="520px">
+      <pre>{{ selectedJson }}</pre>
+    </el-dialog>
   </div>
 </template>
 
@@ -58,6 +63,8 @@ export default {
       loadError: '',
       items: [],
       dialogVisible: false,
+      jsonDialogVisible: false,
+      selectedJson: '',
       form: {
         id: null,
         word: '',
@@ -108,6 +115,11 @@ export default {
     openEdit(row) {
       this.form = { id: row.id, word: row.word, isActive: !!row.isActive }
       this.dialogVisible = true
+    },
+
+    openJson(row) {
+      this.selectedJson = JSON.stringify(row, null, 2)
+      this.jsonDialogVisible = true
     },
 
     async submitForm() {
@@ -178,5 +190,12 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
+}
+
+pre {
+  max-height: 65vh;
+  overflow: auto;
+  background: #f7f7f7;
+  padding: 12px;
 }
 </style>

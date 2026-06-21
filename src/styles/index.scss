@@ -138,6 +138,7 @@ a:hover {
 
 .filters .el-input,
 .filters .el-select,
+.filters .v-select,
 .filters .el-date-editor,
 .filters .el-date-picker,
 .filters .el-input-number {
@@ -174,7 +175,8 @@ a:hover {
 }
 
 .filters .el-input__inner,
-.filters .el-select .el-input__inner {
+.filters .el-select .el-input__inner,
+.filters .vs__dropdown-toggle {
   border-radius: 10px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -182,9 +184,17 @@ a:hover {
 .filters .el-input__inner:hover,
 .filters .el-select .el-input__inner:hover,
 .filters .el-input__inner:focus,
-.filters .el-select .el-input__inner:focus {
+.filters .el-select .el-input__inner:focus,
+.filters .v-select:hover .vs__dropdown-toggle,
+.filters .vs--open .vs__dropdown-toggle {
   border-color: #7f9de6;
   box-shadow: 0 4px 12px rgba(64, 103, 230, 0.18);
+}
+
+.filters .vs__selected,
+.filters .vs__search,
+.filters .vs__search::placeholder {
+  color: #606266;
 }
 
 @media (prefers-reduced-motion: reduce) {

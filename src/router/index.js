@@ -70,6 +70,17 @@ export const constantRouterMap = [
         },
       },
       {
+        path: 'read/:id',
+        name: 'readCategory',
+        hidden: true,
+        component: () => import('@/views/categories/CategoryRead'),
+        meta: {
+          title: 'Просмотр категории',
+          icon: 'categories',
+          roles: ['admin'],
+        },
+      },
+      {
         path: 'edit/:id',
         name: 'editCategory',
         hidden: true,
@@ -112,6 +123,17 @@ export const constantRouterMap = [
         },
       },
       {
+        path: 'read/:id',
+        name: 'readNews',
+        hidden: true,
+        component: () => import('@/views/news/NewsRead'),
+        meta: {
+          title: 'Просмотр новости',
+          icon: 'news',
+          roles: ['admin'],
+        },
+      },
+      {
         path: 'edit/:id',
         name: 'editNews',
         hidden: true,
@@ -143,6 +165,28 @@ export const constantRouterMap = [
         },
       },
       {
+        path: 'add',
+        name: 'addTender',
+        hidden: true,
+        component: () => import('@/views/tenders/TendersForm'),
+        meta: {
+          title: 'Добавление торгов',
+          icon: 'tenders',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: 'read/:id',
+        name: 'readTender',
+        hidden: true,
+        component: () => import('@/views/tenders/TenderRead'),
+        meta: {
+          title: 'Просмотр торгов',
+          icon: 'tenders',
+          roles: ['admin'],
+        },
+      },
+      {
         path: 'edit/:id',
         name: 'editTender',
         hidden: true,
@@ -169,6 +213,28 @@ export const constantRouterMap = [
         component: () => import('@/views/deals/index'),
         meta: {
           title: 'Сделки',
+          icon: 'deals',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: 'add',
+        name: 'addDeals',
+        hidden: true,
+        component: () => import('@/views/deals/DealCreate'),
+        meta: {
+          title: 'Добавление сделки',
+          icon: 'deals',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: 'read/:id',
+        name: 'readDeals',
+        hidden: true,
+        component: () => import('@/views/deals/DealRead'),
+        meta: {
+          title: 'Просмотр сделки',
           icon: 'deals',
           roles: ['admin'],
         },
@@ -216,6 +282,17 @@ export const constantRouterMap = [
           roles: ['admin'],
         },
       },
+      {
+        path: 'read/:id',
+        name: 'readArbitrations',
+        hidden: true,
+        component: () => import('@/views/arbitration/ArbitrationRead'),
+        meta: {
+          title: 'Просмотр арбитража',
+          icon: 'arbitrations',
+          roles: ['admin'],
+        },
+      },
     ],
     meta: {
       availableRoles: ['admin'],
@@ -232,6 +309,28 @@ export const constantRouterMap = [
         component: () => import('@/views/products/index'),
         meta: {
           title: 'Товары',
+          icon: 'products',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: 'add',
+        name: 'addProducts',
+        hidden: true,
+        component: () => import('@/views/products/ProductsForm'),
+        meta: {
+          title: 'Добавление товара',
+          icon: 'products',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: 'read/:id',
+        name: 'readProducts',
+        hidden: true,
+        component: () => import('@/views/products/ProductRead'),
+        meta: {
+          title: 'Просмотр товара',
           icon: 'products',
           roles: ['admin'],
         },
@@ -279,6 +378,17 @@ export const constantRouterMap = [
         },
       },
       {
+        path: 'read/:id',
+        name: 'readTruck',
+        hidden: true,
+        component: () => import('@/views/trucks/TruckRead'),
+        meta: {
+          title: 'Просмотр грузовика',
+          icon: 'products',
+          roles: ['admin'],
+        },
+      },
+      {
         path: 'edit/:id',
         name: 'editTruck',
         hidden: true,
@@ -305,6 +415,28 @@ export const constantRouterMap = [
         component: () => import('@/views/companies/index'),
         meta: {
           title: 'Компании',
+          icon: 'companies',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: 'add',
+        name: 'addCompanies',
+        hidden: true,
+        component: () => import('@/views/companies/CompaniesForm'),
+        meta: {
+          title: 'Добавление компании',
+          icon: 'companies',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: 'read/:id',
+        name: 'readCompanies',
+        hidden: true,
+        component: () => import('@/views/companies/CompanyRead'),
+        meta: {
+          title: 'Просмотр компании',
           icon: 'companies',
           roles: ['admin'],
         },
@@ -340,6 +472,28 @@ export const constantRouterMap = [
           roles: ['admin'],
         },
       },
+      {
+        path: 'read/:id',
+        name: 'readTendersReport',
+        hidden: true,
+        component: () => import('@/views/tenders-reports/TendersReportRead'),
+        meta: {
+          title: 'Просмотр жалобы на торги',
+          icon: 'complaint',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: 'edit/:id',
+        name: 'editTendersReport',
+        hidden: true,
+        component: () => import('@/views/tenders-reports/TendersReportForm'),
+        meta: {
+          title: 'Редактирование жалобы на торги',
+          icon: 'complaint',
+          roles: ['admin'],
+        },
+      },
     ],
     meta: {
       availableRoles: ['admin'],
@@ -356,6 +510,28 @@ export const constantRouterMap = [
         component: () => import('@/views/products-reports/index'),
         meta: {
           title: 'Жалобы на товар',
+          icon: 'complaint',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: 'read/:id',
+        name: 'readProductsReport',
+        hidden: true,
+        component: () => import('@/views/products-reports/ProductsReportRead'),
+        meta: {
+          title: 'Просмотр жалобы на товар',
+          icon: 'complaint',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: 'edit/:id',
+        name: 'editProductsReport',
+        hidden: true,
+        component: () => import('@/views/products-reports/ProductsReportForm'),
+        meta: {
+          title: 'Редактирование жалобы на товар',
           icon: 'complaint',
           roles: ['admin'],
         },
@@ -380,6 +556,39 @@ export const constantRouterMap = [
           roles: ['admin', 'moderator', 'superadmin'],
         },
       },
+      {
+        path: 'add',
+        name: 'addTruckModeration',
+        hidden: true,
+        component: () => import('@/views/truck-moderation/TruckModerationForm'),
+        meta: {
+          title: 'Добавление модерации грузовика',
+          icon: 'complaint',
+          roles: ['admin', 'moderator', 'superadmin'],
+        },
+      },
+      {
+        path: 'read/:id',
+        name: 'readTruckModeration',
+        hidden: true,
+        component: () => import('@/views/truck-moderation/TruckModerationRead'),
+        meta: {
+          title: 'Просмотр модерации грузовика',
+          icon: 'complaint',
+          roles: ['admin', 'moderator', 'superadmin'],
+        },
+      },
+      {
+        path: 'edit/:id',
+        name: 'editTruckModeration',
+        hidden: true,
+        component: () => import('@/views/truck-moderation/TruckModerationForm'),
+        meta: {
+          title: 'Редактирование модерации грузовика',
+          icon: 'complaint',
+          roles: ['admin', 'moderator', 'superadmin'],
+        },
+      },
     ],
     meta: {
       availableRoles: ['admin', 'moderator', 'superadmin'],
@@ -396,6 +605,39 @@ export const constantRouterMap = [
         component: () => import('@/views/products/ProductModeration'),
         meta: {
           title: 'Модерация товаров',
+          icon: 'complaint',
+          roles: ['admin', 'moderator', 'superadmin'],
+        },
+      },
+      {
+        path: 'add',
+        name: 'addProductModeration',
+        hidden: true,
+        component: () => import('@/views/products/ProductModerationForm'),
+        meta: {
+          title: 'Добавление модерации товара',
+          icon: 'complaint',
+          roles: ['admin', 'moderator', 'superadmin'],
+        },
+      },
+      {
+        path: 'read/:id',
+        name: 'readProductModeration',
+        hidden: true,
+        component: () => import('@/views/products/ProductModerationRead'),
+        meta: {
+          title: 'Просмотр модерации товара',
+          icon: 'complaint',
+          roles: ['admin', 'moderator', 'superadmin'],
+        },
+      },
+      {
+        path: 'edit/:id',
+        name: 'editProductModeration',
+        hidden: true,
+        component: () => import('@/views/products/ProductModerationForm'),
+        meta: {
+          title: 'Редактирование модерации товара',
           icon: 'complaint',
           roles: ['admin', 'moderator', 'superadmin'],
         },
@@ -487,6 +729,17 @@ export const constantRouterMap = [
         },
       },
       {
+        path: 'read/:id',
+        name: 'readUser',
+        hidden: true,
+        component: () => import('@/views/users/UserRead'),
+        meta: {
+          title: 'Просмотр пользователя',
+          icon: 'users',
+          roles: ['admin'],
+        },
+      },
+      {
         path: 'edit/:id',
         name: 'editUser',
         hidden: true,
@@ -513,6 +766,39 @@ export const constantRouterMap = [
         component: () => import('@/views/transactions/index'),
         meta: {
           title: 'Транзакции',
+          icon: 'transactions',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: 'add',
+        name: 'addTransaction',
+        hidden: true,
+        component: () => import('@/views/transactions/TransactionForm'),
+        meta: {
+          title: 'Добавление транзакции',
+          icon: 'transactions',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: 'read/:id',
+        name: 'readTransaction',
+        hidden: true,
+        component: () => import('@/views/transactions/TransactionRead'),
+        meta: {
+          title: 'Просмотр транзакции',
+          icon: 'transactions',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: 'edit/:id',
+        name: 'editTransaction',
+        hidden: true,
+        component: () => import('@/views/transactions/TransactionForm'),
+        meta: {
+          title: 'Редактирование транзакции',
           icon: 'transactions',
           roles: ['admin'],
         },

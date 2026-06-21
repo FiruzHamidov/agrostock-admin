@@ -41,6 +41,25 @@
 
       <el-row>
         <el-col :span="11">
+          <el-form-item prop="companyId" label="Компания">
+            <AsyncSelect
+              :value="form.company"
+              :reduce="getCompanyId"
+              :query-limit="100"
+              :remote-search="false"
+              :bind="{ getOptionLabel: getCompanyLabel }"
+              clearable
+              service="companies"
+              label="organizationName"
+              placeholder="Выберите компанию"
+              @value-changed="onCompanyChange"
+            />
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <el-row>
+        <el-col :span="11">
           <el-form-item prop="description" label="Описание">
             <el-input
               v-model="form.description"
@@ -151,7 +170,8 @@
               <AsyncSelect
                 :value="form.cityId"
                 :reduce="val => val.city_id"
-                :additional-query="{ country_id: form.countryId }"
+                :additional-query="cityQuery"
+                :query-limit="50"
                 service="cities"
                 label="name"
                 placeholder="Выберите город"
@@ -236,7 +256,7 @@
       <!-- <Upload :id="form.photoId" /> -->
 
       <el-form-item>
-        <el-button type="primary" @click="onEdit"> Изменить </el-button>
+        <el-button type="primary" @click="onEdit">{{ isEdit ? 'Изменить' : 'Создать' }}</el-button>
         <el-button @click="onCancel">Отмена</el-button>
       </el-form-item>
     </el-form>
@@ -267,10 +287,7 @@ export default {
 
   data() {
     return {
-      form: {
-        name: '',
-        countryId: null,
-      },
+      form: this.getDefaultForm(),
       types: [
         { value: 'sell', label: 'Продажа' },
         { value: 'buy', label: 'Покупка' },
@@ -295,6 +312,16 @@ export default {
     }
   },
 
+  computed: {
+    isEdit() {
+      return Boolean(this.$route.params.id)
+    },
+
+    cityQuery() {
+      return this.form.countryId ? { country_id: this.form.countryId } : {}
+    },
+  },
+
   watch: {
     $route: {
       handler() {
@@ -309,15 +336,119 @@ export default {
   },
 
   methods: {
+    getDefaultForm() {
+      return {
+        name: '',
+        companyId: null,
+        company: null,
+        countryId: null,
+        cityId: null,
+        categoryId: null,
+        productionCountryId: null,
+        type: 'sell',
+        taxType: 'no',
+        deliveryDescription: '',
+        packagingType: '',
+        isDeliveryIncludesInPrice: false,
+        deliveryPrice: '',
+        deliveryType: 'seller',
+        startPrice: '',
+        currency: 'rub',
+        batchSize: '',
+        batchSizeUnit: 't',
+        dateStart: '',
+        dateEnd: '',
+        participationAmount: 1,
+        description: '',
+        status: 'wait',
+        address: '',
+        grade: '',
+        caliber: '',
+        isSafePossible: false,
+        photosIds: [],
+        documentsIds: [],
+      }
+    },
+
     async init() {
       await this.fetchData()
     },
 
     async fetchData() {
+      if (!this.isEdit) {
+        this.form = this.getDefaultForm()
+        return true
+      }
+
       const tenderService = this.$apiClient.service('tenders')
       const res = await tenderService.get(this.$route.params.id)
 
-      this.form = res
+      this.form = {
+        ...this.getDefaultForm(),
+        ...res,
+        company: res.company || null,
+      }
+    },
+
+    onCompanyChange(companyId) {
+      this.form.companyId = companyId
+      this.form.company = null
+    },
+
+    getCompanyId(company) {
+      if (!company) return null
+      return company.id || company.companyId
+    },
+
+    getCompanyLabel(company) {
+      if (!company || typeof company !== 'object') return company || ''
+
+      const name =
+        company.organizationName ||
+        company.fullName ||
+        company.username ||
+        company.email ||
+        company.phone
+
+      return name ? `${name} #${company.id}` : `Компания #${company.id}`
+    },
+
+    getPayload() {
+      const fields = [
+        'name',
+        'companyId',
+        'categoryId',
+        'countryId',
+        'cityId',
+        'productionCountryId',
+        'type',
+        'taxType',
+        'deliveryDescription',
+        'packagingType',
+        'isDeliveryIncludesInPrice',
+        'deliveryPrice',
+        'deliveryType',
+        'startPrice',
+        'currency',
+        'batchSize',
+        'batchSizeUnit',
+        'dateStart',
+        'dateEnd',
+        'participationAmount',
+        'description',
+        'status',
+        'address',
+        'grade',
+        'caliber',
+        'isSafePossible',
+        'photosIds',
+        'documentsIds',
+      ]
+
+      return fields.reduce((payload, field) => {
+        payload[field] = this.form[field]
+        return payload
+      }, {})
     },
 
     async onEdit() {
@@ -328,7 +459,10 @@ export default {
       }
 
       try {
-        await this.confirmUpdate('Сохранить изменения торги?', 'Торги не изменена')
+        await this.confirmUpdate(
+          this.isEdit ? 'Сохранить изменения торги?' : 'Создать торги?',
+          this.isEdit ? 'Торги не изменена' : 'Торги не создана'
+        )
       } catch (err) {
         return false
       }
@@ -336,9 +470,11 @@ export default {
       const tenderService = this.$apiClient.service('tenders')
 
       try {
-        await tenderService.patch(this.$route.params.id, {
-          ...this.form,
-        })
+        if (this.isEdit) {
+          await tenderService.patch(this.$route.params.id, this.getPayload())
+        } else {
+          await tenderService.create(this.getPayload())
+        }
       } catch (err) {
         this.$message({
           message: err.message,
@@ -348,7 +484,7 @@ export default {
       }
 
       this.$message({
-        message: 'Торги изменена!',
+        message: this.isEdit ? 'Торги изменена!' : 'Торги создана!',
         type: 'success',
       })
 

@@ -88,12 +88,32 @@ export const chatModerationApi = {
     return client.service(services.chatMessages).get(id)
   },
 
+  createChatMessage(client, payload) {
+    return client.service(services.chatMessages).create(payload)
+  },
+
+  patchChatMessage(client, id, payload) {
+    return client.service(services.chatMessages).patch(id, payload)
+  },
+
   removeChatMessage(client, id) {
     return client.service(services.chatMessages).remove(id)
   },
 
   findCommonMessages(client, query) {
     return client.service(services.commonMessages).find({ query: sanitizeQuery(query) })
+  },
+
+  getCommonMessage(client, id) {
+    return client.service(services.commonMessages).get(id)
+  },
+
+  createCommonMessage(client, payload) {
+    return client.service(services.commonMessages).create(payload)
+  },
+
+  patchCommonMessage(client, id, payload) {
+    return client.service(services.commonMessages).patch(id, payload)
   },
 
   removeCommonMessage(client, id) {
@@ -110,6 +130,10 @@ export const chatModerationApi = {
 
   patchModeration(client, id, payload) {
     return client.service(services.moderation).patch(id, payload)
+  },
+
+  removeModeration(client, id) {
+    return client.service(services.moderation).remove(id)
   },
 
   findBlockedWords(client, query) {

@@ -28,6 +28,25 @@
       </el-row>
 
       <el-row>
+        <el-col :span="11">
+          <el-form-item prop="companyId" label="Компания">
+            <AsyncSelect
+              :value="form.company"
+              :reduce="getCompanyId"
+              :query-limit="100"
+              :remote-search="false"
+              :bind="{ getOptionLabel: getCompanyLabel }"
+              clearable
+              service="companies"
+              label="organizationName"
+              placeholder="Выберите компанию"
+              @value-changed="onCompanyChange"
+            />
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <el-row>
         <el-col :span="5">
           <el-form-item label="Наименование товара" prop="name">
             <el-input v-model="form.name" />
@@ -36,21 +55,22 @@
         <el-col :span="5" :offset="1">
           <el-form-item prop="countryId" label="Место нахождение товара">
             <AsyncSelect
-              :value="form.country.name"
+              :value="form.country"
               :reduce="val => val.country_id"
               service="countries"
               label="name"
               placeholder="Выберите страну"
-              @value-changed="v => (form.countryId = v)"
+              @value-changed="onCountryChange"
             />
           </el-form-item>
         </el-col>
         <el-col :span="5" :offset="1">
           <el-form-item prop="cityId" label="Город">
             <AsyncSelect
-              :value="form.city.name"
+              :value="form.city"
               :reduce="val => val.city_id"
-              :additional-query="{ country_id: form.countryId }"
+              :additional-query="cityQuery"
+              :query-limit="50"
               service="cities"
               label="name"
               placeholder="Выберите город"
@@ -81,12 +101,12 @@
         <el-col :span="5" :offset="1">
           <el-form-item prop="productionCountryId" label="Место происхождения товара">
             <AsyncSelect
-              :value="form.productionCountry.name"
+              :value="form.productionCountry"
               :reduce="val => val.country_id"
               service="countries"
               label="name"
               placeholder="Выберите страну"
-              @value-changed="v => (form.productionCountryId = v)"
+              @value-changed="onProductionCountryChange"
             />
           </el-form-item>
         </el-col>
@@ -165,7 +185,8 @@
         <el-col :span="16">
           <el-form-item prop="categoryId" label="Категория">
             <AsyncSelect
-              :value="form.category.name"
+              :value="form.category"
+              :reduce="val => val.id"
               service="categories"
               label="name"
               placeholder="Выберите категорию"
@@ -240,11 +261,11 @@
 
       <el-row class="m-t-2">
         <el-form-item>
-          <el-button type="primary" @click="onEdit"> Изменить </el-button>
+          <el-button type="primary" @click="onEdit">{{ isEdit ? 'Изменить' : 'Создать' }}</el-button>
           <el-button @click="onCancel">Отмена</el-button>
-          <el-button type="danger" plain @click="onDelete">Удалить</el-button>
-          <el-button v-if="form.status === 'active'" @click="onBan">Заблокировать</el-button>
-          <el-button v-if="form.status === 'banned'" @click="onRestore">Разблокировать</el-button>
+          <el-button v-if="isEdit" type="danger" plain @click="onDelete">Удалить</el-button>
+          <el-button v-if="isEdit && form.status === 'active'" @click="onBan">Заблокировать</el-button>
+          <el-button v-if="isEdit && form.status === 'banned'" @click="onRestore">Разблокировать</el-button>
         </el-form-item>
       </el-row>
     </el-form>
@@ -272,12 +293,14 @@ export default {
 
   data() {
     return {
-      form: {},
+      form: this.getDefaultForm(),
       types: [{ value: 'buy', label: 'Покупаю' }, { value: 'sell', label: 'Продаю' }],
       statuses: [
+        { label: 'Ожидает', value: 'pending' },
         { label: 'Активен', value: 'active' },
         { label: 'Закрыт', value: 'closed' },
         { label: 'Заблокирован', value: 'banned' },
+        { label: 'Отклонен', value: 'rejected' },
       ],
       packagingTypes,
       batchUnitSizes,
@@ -286,6 +309,16 @@ export default {
       show: false,
       rules: {},
     }
+  },
+
+  computed: {
+    isEdit() {
+      return Boolean(this.$route.params.id)
+    },
+
+    cityQuery() {
+      return this.form.countryId ? { country_id: this.form.countryId } : {}
+    },
   },
 
   watch: {
@@ -302,11 +335,49 @@ export default {
   },
 
   methods: {
+    getDefaultForm() {
+      return {
+        type: 'sell',
+        status: 'pending',
+        name: '',
+        countryId: null,
+        cityId: null,
+        country: null,
+        city: null,
+        productionCountryId: null,
+        productionCountry: null,
+        categoryId: null,
+        category: null,
+        companyId: null,
+        company: null,
+        address: '',
+        taxType: '',
+        isSafePossible: false,
+        unitPrice: '',
+        currency: '',
+        batchSize: '',
+        batchSizeUnit: '',
+        clearance: '',
+        isFinalPrice: false,
+        grade: '',
+        description: '',
+        packagingType: '',
+        caliber: '',
+        photos: [],
+        photosIds: [],
+      }
+    },
+
     async init() {
       await this.fetchData()
     },
 
     async fetchData() {
+      if (!this.isEdit) {
+        this.form = this.getDefaultForm()
+        return true
+      }
+
       const productsService = this.$apiClient.service('products')
       let res
       try {
@@ -316,15 +387,28 @@ export default {
         return false
       }
 
-      this.form = res
+      this.form = {
+        ...this.getDefaultForm(),
+        ...res,
+        country: res.country || null,
+        city: res.city || null,
+        productionCountry: res.productionCountry || null,
+        category: res.category || null,
+        company: res.company || null,
+        photos: Array.isArray(res.photos) ? res.photos : [],
+        photosIds: Array.isArray(res.photosIds)
+          ? res.photosIds
+          : Array.isArray(res.photos)
+            ? res.photos.map(photo => photo.id)
+            : [],
+      }
     },
 
     async deletePhoto(id) {
       try {
         await this.confirmUpdate('Вы действительно хотите удалить фото?', 'Фото не будет удалено')
-        id
-          ? (this.form.photosIds = this.form.photos.filter(item => item.id !== id))
-          : (this.form.photosIds = [])
+        this.form.photosIds = id ? this.form.photosIds.filter(item => item !== id) : []
+        this.form.photos = id ? this.form.photos.filter(item => item.id !== id) : []
         this.$message({
           message: 'Фото будет удалено при изменении',
           type: 'success',
@@ -340,8 +424,77 @@ export default {
         return
       }
 
-      const index = this.form.photosIds.findIndex(item => item.id === id)
-      this.form.photosIds[index] = newId
+      const index = this.form.photosIds.findIndex(item => item === id)
+      if (index === -1) {
+        this.form.photosIds = [...this.form.photosIds, newId]
+        return
+      }
+      this.form.photosIds.splice(index, 1, newId)
+    },
+
+    onCountryChange(countryId) {
+      this.form.countryId = countryId
+      this.form.cityId = null
+      this.form.city = null
+    },
+
+    onProductionCountryChange(countryId) {
+      this.form.productionCountryId = countryId
+    },
+
+    onCompanyChange(companyId) {
+      this.form.companyId = companyId
+      this.form.company = null
+    },
+
+    getCompanyId(company) {
+      if (!company) return null
+      return company.id || company.companyId
+    },
+
+    getCompanyLabel(company) {
+      if (!company || typeof company !== 'object') return company || ''
+
+      const name =
+        company.organizationName ||
+        company.fullName ||
+        company.username ||
+        company.email ||
+        company.phone
+
+      return name ? `${name} #${company.id}` : `Компания #${company.id}`
+    },
+
+    getPayload() {
+      const fields = [
+        'type',
+        'status',
+        'name',
+        'companyId',
+        'unitPrice',
+        'currency',
+        'batchSize',
+        'batchSizeUnit',
+        'taxType',
+        'clearance',
+        'isFinalPrice',
+        'description',
+        'grade',
+        'packagingType',
+        'caliber',
+        'address',
+        'isSafePossible',
+        'countryId',
+        'cityId',
+        'productionCountryId',
+        'categoryId',
+        'photosIds',
+      ]
+
+      return fields.reduce((payload, field) => {
+        payload[field] = this.form[field]
+        return payload
+      }, {})
     },
 
     async onEdit() {
@@ -352,24 +505,30 @@ export default {
       }
 
       try {
-        await this.confirmUpdate('Сохранить изменения товара?', 'Товар не изменен')
+        await this.confirmUpdate(
+          this.isEdit ? 'Сохранить изменения товара?' : 'Создать товар?',
+          this.isEdit ? 'Товар не изменен' : 'Товар не создан'
+        )
       } catch (err) {
         return false
       }
 
       const productsService = this.$apiClient.service('products')
+      const payload = this.getPayload()
 
       try {
-        await productsService.patch(this.$route.params.id, {
-          ...this.form,
-        })
+        if (this.isEdit) {
+          await productsService.patch(this.$route.params.id, payload)
+        } else {
+          await productsService.create(payload)
+        }
       } catch (err) {
-        handleApiError(this, err, 'Не удалось обновить товар')
+        handleApiError(this, err, this.isEdit ? 'Не удалось обновить товар' : 'Не удалось создать товар')
         return false
       }
 
       this.$message({
-        message: 'Товар изменен!',
+        message: this.isEdit ? 'Товар изменен!' : 'Товар создан!',
         type: 'success',
       })
 

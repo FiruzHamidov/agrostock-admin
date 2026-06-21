@@ -3,30 +3,86 @@
     <div
       class="top-menu el-col el-col-24 el-col-xs-24 el-col-sm-24 el-col-md-24 tp-text--right mb-4"
     >
-      <div class="filters">
-        <el-input v-model="filters.$search" clearable placeholder="Поиск" />
-        <el-select v-model="filters.status" clearable placeholder="Статус">
-          <el-option v-for="item in statusesList" :key="item.value" :label="item.label" :value="item.value" />
-        </el-select>
-        <el-select v-model="filters.type" clearable placeholder="Тип">
-          <el-option label="Продажа" value="sell" />
-          <el-option label="Покупка" value="buy" />
-        </el-select>
-        <el-input v-model.number="filters.companyId" clearable type="number" placeholder="companyId" class="w-140" />
-        <el-input
-          v-model.number="filters.categoryId"
-          clearable
-          type="number"
-          placeholder="categoryId"
-          class="w-140"
-        />
-        <el-input v-model.number="filters.countryId" clearable type="number" placeholder="countryId" class="w-140" />
-        <el-input v-model.number="filters.cityId" clearable type="number" placeholder="cityId" class="w-120" />
-        <el-switch v-model="filters.$getMine" active-text="Мои торги" />
-        <el-switch v-model="filters.$getParticipants" active-text="С участниками" />
-        <el-button @click="onFilterClick"> Применить </el-button>
+      <div class="filters tenders-filters">
+        <div class="filter-control filter-control--search">
+          <el-input v-model="filters.$search" clearable prefix-icon="el-icon-search" placeholder="Поиск по названию или ID" />
+        </div>
+        <div class="filter-control">
+          <el-select v-model="filters.status" clearable placeholder="Статус">
+            <el-option v-for="item in statusesList" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </div>
+        <div class="filter-control">
+          <el-select v-model="filters.type" clearable placeholder="Тип">
+            <el-option label="Продажа" value="sell" />
+            <el-option label="Покупка" value="buy" />
+          </el-select>
+        </div>
+        <div class="filter-control">
+          <AsyncSelect
+            :value="filters.companyId"
+            :reduce="getCompanyId"
+            :query-limit="100"
+            :remote-search="false"
+            :bind="{ getOptionLabel: getCompanyLabel }"
+            clearable
+            service="companies"
+            label="organizationName"
+            placeholder="Компания"
+            @value-changed="v => (filters.companyId = v)"
+          />
+        </div>
+        <div class="filter-control">
+          <AsyncSelect
+            :value="filters.categoryId"
+            :reduce="getCategoryId"
+            clearable
+            service="categories"
+            label="name"
+            placeholder="Категория"
+            @value-changed="v => (filters.categoryId = v)"
+          />
+        </div>
+        <div class="filter-control">
+          <AsyncSelect
+            :value="filters.countryId"
+            :reduce="getCountryId"
+            clearable
+            service="countries"
+            label="name"
+            placeholder="Страна"
+            @value-changed="onCountryFilterChange"
+          />
+        </div>
+        <div class="filter-control">
+          <AsyncSelect
+            :value="filters.cityId"
+            :reduce="getCityId"
+            :additional-query="cityFilterQuery"
+            :query-limit="50"
+            clearable
+            service="cities"
+            label="name"
+            placeholder="Город"
+            @value-changed="v => (filters.cityId = v)"
+          />
+        </div>
+
+        <div class="filter-flags">
+          <el-checkbox v-model="filters.$getParticipants">С участниками</el-checkbox>
+          <el-checkbox v-model="filters.$getMine">Мои торги</el-checkbox>
+        </div>
+
+        <div class="filter-actions">
+          <el-button @click="resetFilters">Сбросить</el-button>
+          <el-button type="primary" @click="onFilterClick">Применить</el-button>
+        </div>
       </div>
-      <div class="add-button" />
+      <div class="add-button">
+        <router-link :to="{ name: 'addTender' }">
+          <el-button type="success" icon="el-icon-plus" circle />
+        </router-link>
+      </div>
     </div>
     <el-alert v-if="notAuthenticated" :closable="false" type="error" title="401: требуется авторизация" show-icon />
     <el-alert v-else-if="forbidden" :closable="false" type="error" title="403: доступ запрещен" show-icon />
@@ -73,6 +129,13 @@
         <template slot-scope="scope">
           <div class="el-button-group">
             <router-link
+              :to="{ name: 'readTender', params: { id: scope.row.id } }"
+              tag="button"
+              class="el-button el-button--default el-button--small"
+            >
+              <i class="el-icon-view" />
+            </router-link>
+            <router-link
               :to="{ name: 'editTender', params: { id: scope.row.id } }"
               tag="button"
               class="el-button el-button--default el-button--small"
@@ -103,6 +166,7 @@
 import confirmUpdate from '@/mixins/confirmUpdate'
 import moment from 'moment'
 import { handleApiError } from '@/utils/api-error'
+import AsyncSelect from '@/components/AsyncSelect'
 
 import { currencySymbols } from '@/utils/variables'
 
@@ -118,6 +182,10 @@ export default {
     },
   },
 
+  components: {
+    AsyncSelect,
+  },
+
   mixins: [confirmUpdate],
 
   props: {
@@ -130,7 +198,17 @@ export default {
   data() {
     return {
       tenders: [],
-      filters: {},
+      filters: {
+        $search: '',
+        status: '',
+        type: '',
+        companyId: null,
+        categoryId: null,
+        countryId: null,
+        cityId: null,
+        $getMine: false,
+        $getParticipants: false,
+      },
       notAuthenticated: false,
       forbidden: false,
       notFound: false,
@@ -146,6 +224,7 @@ export default {
         suspended: 'Приостановлен',
         doneWithWinner: 'Завершен (есть победитель)',
         doneWithoutWinner: 'Завершен (нет победителя)',
+        banned: 'Заблокирован',
       },
       statusesList: [
         { value: 'wait', label: 'В ожидании' },
@@ -154,8 +233,15 @@ export default {
         { value: 'suspended', label: 'Приостановлен' },
         { value: 'doneWithWinner', label: 'Завершен (есть победитель)' },
         { value: 'doneWithoutWinner', label: 'Завершен (нет победителя)' },
+        { value: 'banned', label: 'Заблокирован' },
       ],
     }
+  },
+
+  computed: {
+    cityFilterQuery() {
+      return this.filters.countryId ? { country_id: this.filters.countryId } : {}
+    },
   },
 
   mounted() {
@@ -227,6 +313,44 @@ export default {
 
     updateActive() {},
 
+    getCompanyId(company) {
+      if (!company) return null
+      return company.id || company.companyId
+    },
+
+    getCompanyLabel(company) {
+      if (!company || typeof company !== 'object') return company || ''
+
+      const name =
+        company.organizationName ||
+        company.fullName ||
+        company.username ||
+        company.email ||
+        company.phone
+
+      return name ? `${name} #${company.id}` : `Компания #${company.id}`
+    },
+
+    getCategoryId(category) {
+      if (!category) return null
+      return category.id || category.categoryId
+    },
+
+    getCountryId(country) {
+      if (!country) return null
+      return country.id || country.countryId || country.country_id
+    },
+
+    getCityId(city) {
+      if (!city) return null
+      return city.id || city.cityId || city.city_id
+    },
+
+    onCountryFilterChange(countryId) {
+      this.filters.countryId = countryId
+      this.filters.cityId = null
+    },
+
     async handleDelete(id) {
       try {
         await this.confirmUpdate('Точно удалить категорию?', 'Категория не удалена')
@@ -252,16 +376,125 @@ export default {
       this.page = 1
       this.fetchData()
     },
+
+    resetFilters() {
+      this.filters = {
+        $search: '',
+        status: '',
+        type: '',
+        companyId: null,
+        categoryId: null,
+        countryId: null,
+        cityId: null,
+        $getMine: false,
+        $getParticipants: false,
+      }
+      this.onFilterClick()
+    },
   },
 }
 </script>
 
 <style scoped>
-.w-120 {
-  width: 120px;
+.tenders-filters {
+  display: grid !important;
+  grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+  align-items: center !important;
+  padding: 16px !important;
+  border: 1px solid #ebeef5;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(30, 42, 70, 0.04);
+  text-align: left;
 }
 
-.w-140 {
-  width: 140px;
+.filter-control,
+.filter-flags,
+.filter-actions {
+  grid-column: span 2;
+  min-width: 0;
+}
+
+.filter-control--search {
+  grid-column: span 3;
+  min-width: 0;
+}
+
+.filter-control .el-select,
+.filter-control .el-input {
+  width: 100%;
+}
+
+.filter-control >>> .v-select,
+.filter-control >>> .vs__dropdown-toggle {
+  width: 100%;
+  max-width: 100%;
+  min-height: 40px;
+}
+
+.filter-control >>> .v-select {
+  min-width: 0;
+}
+
+.filter-control >>> .vs__selected-options {
+  min-width: 0;
+}
+
+.filter-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  min-height: 40px;
+  color: #606266;
+  white-space: nowrap;
+}
+
+.filter-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.filter-actions .el-button {
+  margin-left: 0;
+}
+
+@media (max-width: 1500px) {
+  .tenders-filters {
+    grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+  }
+
+  .filter-control,
+  .filter-flags,
+  .filter-actions {
+    grid-column: span 2;
+  }
+
+  .filter-control--search {
+    grid-column: span 4;
+  }
+}
+
+@media (max-width: 768px) {
+  .tenders-filters {
+    grid-template-columns: 1fr !important;
+  }
+
+  .filter-actions {
+    grid-column: span 1;
+    justify-content: stretch;
+  }
+
+  .filter-control,
+  .filter-control--search,
+  .filter-flags {
+    grid-column: span 1;
+  }
+
+  .filter-actions .el-button {
+    flex: 1;
+  }
 }
 </style>

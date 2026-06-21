@@ -1,5 +1,13 @@
 <template>
   <div class="app-container">
+    <el-alert
+      v-if="!canManageStaffRoles"
+      :closable="false"
+      class="role-alert"
+      type="warning"
+      title="Назначение admin, moderator и superadmin доступно только superadmin. Backend также должен проверять это правило."
+      show-icon
+    />
     <el-form ref="ruleForm" :rules="rules" :model="form" label-width="160px" label-position="top">
       <el-row>
         <el-col :span="11">
@@ -31,7 +39,7 @@
         <el-col :span="7">
           <el-form-item label="Роль" prop="type">
             <el-select v-model="form.type" placeholder="Выберите роль">
-              <el-option v-for="item in typeOptions" :key="item" :label="item" :value="item" />
+              <el-option v-for="item in availableTypeOptions" :key="item" :label="item" :value="item" />
             </el-select>
           </el-form-item>
         </el-col>
@@ -93,7 +101,7 @@ export default {
 
   data() {
     const validateUserType = (rule, value, callback) => {
-      if (this.typeOptions.includes(value)) {
+      if (this.availableTypeOptions.includes(value)) {
         callback()
         return
       }
@@ -112,6 +120,7 @@ export default {
 
     return {
       isEdit: false,
+      originalType: '',
       typeOptions: ['company', 'admin', 'moderator', 'superadmin'],
       statusOptions: ['active', 'blocked'],
       form: {
@@ -148,6 +157,23 @@ export default {
     }
   },
 
+  computed: {
+    currentUserType() {
+      return this.$store.getters['user/userType']
+    },
+
+    canManageStaffRoles() {
+      return this.currentUserType === 'superadmin'
+    },
+
+    availableTypeOptions() {
+      if (this.canManageStaffRoles) {
+        return this.typeOptions
+      }
+      return this.originalType && this.originalType !== 'company' ? [this.originalType] : ['company']
+    },
+  },
+
   watch: {
     $route: {
       handler() {
@@ -167,6 +193,8 @@ export default {
 
       if (this.isEdit) {
         await this.fetchData()
+      } else if (!this.availableTypeOptions.includes(this.form.type)) {
+        this.form.type = this.availableTypeOptions[0]
       }
     },
 
@@ -176,6 +204,10 @@ export default {
         ...this.form,
         ...data,
         password: '',
+      }
+      this.originalType = data.type
+      if (!this.availableTypeOptions.includes(this.form.type)) {
+        this.form.type = this.availableTypeOptions[0]
       }
     },
 
@@ -188,6 +220,10 @@ export default {
         status: this.form.status,
         isOnline: Boolean(this.form.isOnline),
         languageId: Number(this.form.languageId),
+      }
+
+      if (!this.canManageStaffRoles && this.originalType && this.originalType !== 'company') {
+        payload.type = this.originalType
       }
 
       if (this.form.password) {
@@ -221,6 +257,14 @@ export default {
       }
 
       const payload = this.buildPayload()
+      if (!this.availableTypeOptions.includes(payload.type)) {
+        this.$message({
+          message: 'Недостаточно прав для назначения выбранной роли',
+          type: 'error',
+        })
+        return false
+      }
+
       if (!payload.password) {
         this.$message({
           message: 'Введите пароль',
@@ -258,7 +302,15 @@ export default {
       }
 
       try {
-        await this.$apiClient.service('users').update(this.$route.params.id, this.buildPayload())
+        const payload = this.buildPayload()
+        if (!this.availableTypeOptions.includes(payload.type)) {
+          this.$message({
+            message: 'Недостаточно прав для назначения выбранной роли',
+            type: 'error',
+          })
+          return false
+        }
+        await this.$apiClient.service('users').update(this.$route.params.id, payload)
       } catch (err) {
         this.showApiError(err, 'Не удалось изменить пользователя')
         return false
@@ -288,3 +340,9 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.role-alert {
+  margin-bottom: 16px;
+}
+</style>

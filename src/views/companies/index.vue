@@ -1,5 +1,13 @@
 <template>
   <div class="app-container">
+    <div class="top-menu el-col el-col-24 el-col-xs-24 el-col-sm-24 el-col-md-24 tp-text--right mb-4">
+      <div class="filters" />
+      <div class="add-button">
+        <router-link :to="{ name: 'addCompanies' }">
+          <el-button type="success" icon="el-icon-plus" circle />
+        </router-link>
+      </div>
+    </div>
     <el-table v-loading="isLoading" :data="companies" element-loading-text="Loading">
       <el-table-column align="center" label="Номер" width="75">
         <template slot-scope="scope">
@@ -30,12 +38,22 @@
         <template slot-scope="scope">
           <div class="el-button-group">
             <router-link
+              :to="{ name: 'readCompanies', params: { id: scope.row.id } }"
+              tag="button"
+              class="el-button el-button--default el-button--small"
+            >
+              <i class="el-icon-view" />
+            </router-link>
+            <router-link
               :to="{ name: 'editCompanies', params: { id: scope.row.id } }"
               tag="button"
               class="el-button el-button--default el-button--small"
             >
               <i class="el-icon-edit" />
             </router-link>
+            <el-button size="small" type="danger" @click="handleDelete(scope.row.id)">
+              <i class="el-icon-delete" />
+            </el-button>
           </div>
         </template>
       </el-table-column>
@@ -54,8 +72,13 @@
 </template>
 
 <script>
+import confirmUpdate from '@/mixins/confirmUpdate'
+import { handleApiError } from '@/utils/api-error'
+
 export default {
   name: 'Companies',
+
+  mixins: [confirmUpdate],
 
   data() {
     return {
@@ -105,6 +128,28 @@ export default {
     handleSizeChange(pageSize) {
       this.limit = pageSize
       this.fetchData()
+    },
+
+    async handleDelete(id) {
+      try {
+        await this.confirmUpdate('Точно удалить компанию?', 'Компания не удалена')
+      } catch (err) {
+        return false
+      }
+
+      try {
+        await this.$apiClient.service('companies').remove(id)
+      } catch (err) {
+        handleApiError(this, err, 'Не удалось удалить компанию')
+        return false
+      }
+
+      this.$message({
+        message: 'Компания удалена!',
+        type: 'success',
+      })
+
+      return await this.fetchData()
     },
   },
 }

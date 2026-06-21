@@ -35,6 +35,13 @@
         <template slot-scope="scope">
           <div class="el-button-group">
             <router-link
+              :to="{ name: 'readCategory', params: { id: scope.row.id } }"
+              tag="button"
+              class="el-button el-button--default el-button--small"
+            >
+              <i class="el-icon-view" />
+            </router-link>
+            <router-link
               :to="{ name: 'editCategory', params: { id: scope.row.id } }"
               tag="button"
               class="el-button el-button--default el-button--small"

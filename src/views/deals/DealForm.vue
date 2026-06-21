@@ -218,6 +218,7 @@
       <el-form-item>
         <el-button type="primary" @click="onEdit"> Изменить </el-button>
         <el-button @click="onCancel">Отмена</el-button>
+        <el-button type="danger" plain @click="onDelete">Удалить</el-button>
       </el-form-item>
     </el-form>
   </div>
@@ -441,6 +442,32 @@ export default {
       })
 
       this.$router.push({ name: 'Deals' })
+    },
+
+    async onDelete() {
+      try {
+        await this.confirmUpdate('Точно удалить сделку?', 'Сделка не удалена')
+      } catch (err) {
+        return false
+      }
+
+      try {
+        await this.$apiClient.service('deals').remove(this.$route.params.id)
+      } catch (err) {
+        this.$message({
+          message: err.message,
+          type: 'error',
+        })
+        return false
+      }
+
+      this.$message({
+        message: 'Сделка удалена!',
+        type: 'success',
+      })
+
+      this.$router.push({ name: 'Deals' })
+      return true
     },
 
     async addMessages() {

@@ -54,9 +54,7 @@ export default {
       let response = await this.$apiClient.service('tags').find({
         query,
       })
-      if (Array.isArray(response)) {
-        response = response
-      } else {
+      if (!Array.isArray(response)) {
         response = response.data
       }
 
